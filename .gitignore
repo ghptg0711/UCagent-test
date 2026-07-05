@@ -1,0 +1,54 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.bundle
+out/
+.mill-cache/
+.bsp/
+
+# Third-party source (NutShell RTL is submitted as precompiled Verilog)
+NutShell/
+
+# Simulation artifacts
+logs/
+wave/
+waves/
+obj_dir/
+obj_dir_coverage/
+*.vcd
+*.fst
+*.fsdb
+
+# Compiled objects
+*.o
+
+# Exclude .so globally but keep DUT artifacts (Picker evidence)
+*.so
+# Keep top-level DUT .so files as verification evidence (not xspcomm symlinks)
+!rtl/generated_real/_UT_RealNutShellCache.so
+!rtl/generated_real/libUTRealNutShellCache.so
+!rtl/generated/_UT_NutShellCache.so
+!rtl/generated/libUTNutShellCache.so
+!rtl/dut_gen/UT_NutShellCache/libUTNutShellCache.so
+
+# Exclude xspcomm runtime symlinks (can be reinstalled via Picker)
+rtl/generated_real/xspcomm/
+rtl/generated/xspcomm/
+rtl/dut_gen/UT_NutShellCache/xspcomm/
+
+# Coverage data files
+reports/real_dut_coverage.dat
+
+# IDE
+.idea/
+.vscode/
+*.swp
