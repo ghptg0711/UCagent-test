@@ -1,0 +1,196 @@
+// NutShell-style Cache DUT (simplified)
+// Compatible with NutShell Cache interface conventions
+// Top module: NutShellCache
+
+`timescale 1ns / 1ps
+
+module NutShellCache (
+    input  clock,
+    input  reset,
+
+    // CPU request interface (valid/ready handshake)
+    input         io_cpu_req_valid,
+    output        io_cpu_req_ready,
+    input  [63:0] io_cpu_req_bits_addr,
+    input         io_cpu_req_bits_write,
+    input  [63:0] io_cpu_req_bits_wdata,
+    input  [7:0]  io_cpu_req_bits_wmask,
+
+    // CPU response interface
+    output        io_cpu_resp_valid,
+    input         io_cpu_resp_ready,
+    output [63:0] io_cpu_resp_bits_data,
+
+    // Memory request interface (DUT -> Memory)
+    output        io_mem_req_valid,
+    input         io_mem_req_ready,
+    output [63:0] io_mem_req_bits_addr,
+    output        io_mem_req_bits_write,
+    output [511:0] io_mem_req_bits_wdata,
+    output [63:0]  io_mem_req_bits_wmask,
+
+    // Memory response interface (Memory -> DUT)
+    input          io_mem_resp_valid,
+    output         io_mem_resp_ready,
+    input  [511:0] io_mem_resp_bits_data
+);
+
+    // Cache parameters
+    localparam SETS = 64;
+    localparam WAYS = 4;
+    localparam LINE_BYTES = 64;
+    localparam OFFSET_BITS = 6;   // log2(64)
+    localparam INDEX_BITS = 6;   // log2(64)
+    localparam TAG_BITS = 64 - OFFSET_BITS - INDEX_BITS;
+
+    // Cache state
+    reg [LINE_BYTES*8-1:0] cache_data [0:SETS-1][0:WAYS-1];
+    reg [TAG_BITS-1:0]     cache_tag  [0:SETS-1][0:WAYS-1];
+    reg                    cache_valid [0:SETS-1][0:WAYS-1];
+    reg                    cache_dirty [0:SETS-1][0:WAYS-1];
+    reg [$clog2(WAYS)-1:0] lru_way [0:SETS-1];
+
+    // Backing memory (simplified, 64KB)
+    reg [7:0] backing_mem [0:65535];
+
+    // Request processing state
+    reg        req_pending;
+    reg        req_write;
+    reg [63:0] req_addr;
+    reg [63:0] req_wdata;
+    reg [7:0]  req_wmask;
+    reg [63:0] resp_data;
+    reg        resp_valid_r;
+
+    // Memory request state
+    reg        mem_req_pending;
+    reg [63:0] mem_req_addr;
+    reg        mem_req_write;
+    reg [511:0] mem_req_wdata;
+    reg [63:0]  mem_req_wmask;
+
+    // Index/tag extraction
+    wire [OFFSET_BITS-1:0] offset = req_addr[OFFSET_BITS-1:0];
+    wire [INDEX_BITS-1:0] index = req_addr[OFFSET_BITS+INDEX_BITS-1:OFFSET_BITS];
+    wire [TAG_BITS-1:0]   tag = req_addr[63:OFFSET_BITS+INDEX_BITS];
+
+    // Hit detection
+    reg [31:0] hit_way; // 0-indexed
+    reg        hit;
+
+    // Find hit
+    always @(*) begin
+        hit = 0;
+        hit_way = 0;
+        for (integer w = 0; w < WAYS; w = w + 1) begin
+            if (cache_valid[index][w] && cache_tag[index][w] == tag) begin
+                hit = 1;
+                hit_way = w;
+            end
+        end
+    end
+
+    // Ready signal
+    assign io_cpu_req_ready = ~req_pending && ~mem_req_pending;
+    assign io_cpu_resp_valid = resp_valid_r;
+    assign io_cpu_resp_bits_data = resp_data;
+
+    // Memory request signals
+    assign io_mem_req_valid = mem_req_pending;
+    assign io_mem_req_bits_addr = mem_req_addr;
+    assign io_mem_req_bits_write = mem_req_write;
+    assign io_mem_req_bits_wdata = mem_req_wdata;
+    assign io_mem_req_bits_wmask = mem_req_wmask;
+    assign io_mem_resp_ready = 1'b1;
+
+    // Main processing
+    always @(posedge clock) begin
+        if (reset) begin
+            req_pending <= 0;
+            resp_valid_r <= 0;
+            mem_req_pending <= 0;
+            for (integer s = 0; s < SETS; s = s + 1) begin
+                lru_way[s] <= 0;
+                for (integer w = 0; w < WAYS; w = w + 1) begin
+                    cache_valid[s][w] <= 0;
+                    cache_dirty[s][w] <= 0;
+                end
+            end
+        end else begin
+            // Clear response
+            if (resp_valid_r && io_cpu_resp_ready) begin
+                resp_valid_r <= 0;
+            end
+
+            // Handle memory response (fill)
+            if (io_mem_resp_valid && mem_req_pending) begin
+                mem_req_pending <= 0;
+                // Fill cache line
+                cache_data[index][lru_way[index]] <= io_mem_resp_bits_data;
+                cache_tag[index][lru_way[index]] <= tag;
+                cache_valid[index][lru_way[index]] <= 1;
+                cache_dirty[index][lru_way[index]] <= 0;
+                // Generate response
+                resp_data <= io_mem_resp_bits_data[offset*8 +: 64];
+                resp_valid_r <= 1;
+                req_pending <= 0;
+            end
+
+            // Accept new request
+            if (io_cpu_req_valid && io_cpu_req_ready && !req_pending) begin
+                req_pending <= 1;
+                req_write <= io_cpu_req_bits_write;
+                req_addr <= io_cpu_req_bits_addr;
+                req_wdata <= io_cpu_req_bits_wdata;
+                req_wmask <= io_cpu_req_bits_wmask;
+            end
+
+            // Process request
+            if (req_pending && !resp_valid_r) begin
+                if (hit) begin
+                    // Cache hit
+                    if (req_write) begin
+                        // Write hit - update data with mask
+                        for (integer i = 0; i < 8; i = i + 1) begin
+                            if (req_wmask[i]) begin
+                                cache_data[index][hit_way][offset*8 + i*8 +: 8] <= req_wdata[i*8 +: 8];
+                            end
+                        end
+                        cache_dirty[index][hit_way] <= 1;
+                        resp_data <= 0;
+                        resp_valid_r <= 1;
+                        req_pending <= 0;
+                    end else begin
+                        // Read hit
+                        resp_data <= cache_data[index][hit_way][offset*8 +: 64];
+                        resp_valid_r <= 1;
+                        req_pending <= 0;
+                    end
+                    // Update LRU
+                    lru_way[index] <= (hit_way == WAYS-1) ? 0 : hit_way + 1;
+                end else begin
+                    // Cache miss - need to fill from memory
+                    if (!mem_req_pending) begin
+                        // Check if victim is dirty
+                        if (cache_valid[index][lru_way[index]] && cache_dirty[index][lru_way[index]]) begin
+                            // Writeback dirty line
+                            mem_req_pending <= 1;
+                            mem_req_addr <= {cache_tag[index][lru_way[index]], index, {OFFSET_BITS{1'b0}}};
+                            mem_req_write <= 1;
+                            mem_req_wdata <= cache_data[index][lru_way[index]];
+                            mem_req_wmask <= {LINE_BYTES{1'b1}};
+                        end else begin
+                            // Just fill
+                            mem_req_pending <= 1;
+                            mem_req_addr <= {tag, index, {OFFSET_BITS{1'b0}}};
+                            mem_req_write <= 0;
+                            mem_req_wdata <= 0;
+                            mem_req_wmask <= 0;
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+endmodule

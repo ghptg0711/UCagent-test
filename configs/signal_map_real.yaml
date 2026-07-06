@@ -1,0 +1,48 @@
+clock: clock
+reset: reset
+flush: io_flush
+empty: io_empty
+
+cpu_req_valid: io_in_req_valid
+cpu_req_ready: io_in_req_ready
+cpu_req_addr: io_in_req_bits_addr
+cpu_req_write:
+cpu_req_cmd: io_in_req_bits_cmd
+cpu_req_size: io_in_req_bits_size
+cpu_req_wdata: io_in_req_bits_wdata
+cpu_req_wmask: io_in_req_bits_wmask
+cpu_req_user: io_in_req_bits_user
+cpu_resp_valid: io_in_resp_valid
+cpu_resp_ready: io_in_resp_ready
+cpu_resp_cmd: io_in_resp_bits_cmd
+cpu_resp_rdata: io_in_resp_bits_rdata
+cpu_resp_user: io_in_resp_bits_user
+
+mem_req_valid: io_out_mem_req_valid
+mem_req_ready: io_out_mem_req_ready
+mem_req_addr: io_out_mem_req_bits_addr
+mem_req_cmd: io_out_mem_req_bits_cmd
+mem_req_size: io_out_mem_req_bits_size
+mem_req_wdata: io_out_mem_req_bits_wdata
+mem_req_wmask: io_out_mem_req_bits_wmask
+mem_resp_valid: io_out_mem_resp_valid
+mem_resp_ready: io_out_mem_resp_ready
+mem_resp_cmd: io_out_mem_resp_bits_cmd
+mem_resp_rdata: io_out_mem_resp_bits_rdata
+
+mmio_req_valid: io_mmio_req_valid
+mmio_req_ready: io_mmio_req_ready
+mmio_req_addr: io_mmio_req_bits_addr
+mmio_req_cmd: io_mmio_req_bits_cmd
+mmio_req_size: io_mmio_req_bits_size
+mmio_req_wdata: io_mmio_req_bits_wdata
+mmio_req_wmask: io_mmio_req_bits_wmask
+mmio_resp_valid: io_mmio_resp_valid
+mmio_resp_ready: io_mmio_resp_ready
+mmio_resp_cmd: io_mmio_resp_bits_cmd
+mmio_resp_rdata: io_mmio_resp_bits_rdata
+
+coh_req_valid: io_out_coh_req_valid
+coh_req_ready: io_out_coh_req_ready
+coh_resp_valid: io_out_coh_resp_valid
+coh_resp_ready: io_out_coh_resp_ready

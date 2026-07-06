@@ -1,0 +1,140 @@
+{
+    "clock": {
+        "High": -1,
+        "Low": 0,
+        "Pin": "input",
+        "_": true
+    },
+    "io": {
+        "cpu": {
+            "req": {
+                "bits": {
+                    "addr": {
+                        "High": 63,
+                        "Low": 0,
+                        "Pin": "input",
+                        "_": true
+                    },
+                    "wdata": {
+                        "High": 63,
+                        "Low": 0,
+                        "Pin": "input",
+                        "_": true
+                    },
+                    "wmask": {
+                        "High": 7,
+                        "Low": 0,
+                        "Pin": "input",
+                        "_": true
+                    },
+                    "write": {
+                        "High": -1,
+                        "Low": 0,
+                        "Pin": "input",
+                        "_": true
+                    }
+                },
+                "ready": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "output",
+                    "_": true
+                },
+                "valid": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "input",
+                    "_": true
+                }
+            },
+            "resp": {
+                "bits_data": {
+                    "High": 63,
+                    "Low": 0,
+                    "Pin": "output",
+                    "_": true
+                },
+                "ready": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "input",
+                    "_": true
+                },
+                "valid": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "output",
+                    "_": true
+                }
+            }
+        },
+        "mem": {
+            "req": {
+                "bits": {
+                    "addr": {
+                        "High": 63,
+                        "Low": 0,
+                        "Pin": "output",
+                        "_": true
+                    },
+                    "wdata": {
+                        "High": 511,
+                        "Low": 0,
+                        "Pin": "output",
+                        "_": true
+                    },
+                    "wmask": {
+                        "High": 63,
+                        "Low": 0,
+                        "Pin": "output",
+                        "_": true
+                    },
+                    "write": {
+                        "High": -1,
+                        "Low": 0,
+                        "Pin": "output",
+                        "_": true
+                    }
+                },
+                "ready": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "input",
+                    "_": true
+                },
+                "valid": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "output",
+                    "_": true
+                }
+            },
+            "resp": {
+                "bits_data": {
+                    "High": 511,
+                    "Low": 0,
+                    "Pin": "input",
+                    "_": true
+                },
+                "ready": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "output",
+                    "_": true
+                },
+                "valid": {
+                    "High": -1,
+                    "Low": 0,
+                    "Pin": "input",
+                    "_": true
+                }
+            }
+        }
+    },
+    "reset": {
+        "High": -1,
+        "Low": 0,
+        "Pin": "input",
+        "_": true
+    }
+}

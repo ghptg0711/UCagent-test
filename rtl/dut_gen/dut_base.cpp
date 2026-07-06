@@ -1,0 +1,1220 @@
+#include "dut_base.hpp"
+#include <dlfcn.h>
+#include <unistd.h>
+#include <string>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <functional>
+#include <filesystem>
+#if defined(USE_VCS) || defined(__linux__)
+#include <sys/personality.h>
+#endif
+
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
+int enable_xinfo = 0; // 0: disable, 1: enable, 2: debug
+
+#if defined(USE_VCS)
+
+// argv[0] is the .so path; VCS options start at index 1.
+static bool has_argv_option(int argc, char **argv, const char *opt)
+{
+    for (int i = 1; i < argc; ++i)
+        if (argv[i] && std::strcmp(argv[i], opt) == 0) return true;
+    return false;
+}
+
+static void append_argv_option(int &argc, char **argv, const std::string &val, int cap)
+{
+    if (argc >= cap) { XWarning("VCS argv overflow, option '%s' skipped", val.c_str()); return; }
+    char *p = (char *)malloc(val.size() + 1);
+    std::memcpy(p, val.c_str(), val.size() + 1);
+    argv[argc++] = p;
+}
+
+static constexpr int vcs_coverage_metrics_mask = 0;
+
+static std::string vcs_coverage_metric_string()
+{
+    static constexpr std::pair<int, const char *> kMetrics[] = {
+        {1 << 0, "line"}, {1 << 1, "cond"}, {1 << 2, "fsm"},
+        {1 << 3, "tgl"},  {1 << 4, "branch"}, {1 << 5, "assert"},
+    };
+    std::string s;
+    for (auto [bit, name] : kMetrics)
+        if (vcs_coverage_metrics_mask & bit) { if (!s.empty()) s += '+'; s += name; }
+    return s;
+}
+
+// Sanitize user-provided name into a valid VCS testdata name.
+// "foo.fsdb" -> "foo",  "./dir/" -> "NutShellCache"
+static std::string vcs_coverage_test_name(const std::string &val)
+{
+    std::string name = std::filesystem::path(val).stem().string();
+    if (name.empty() || name == ".") name = "NutShellCache";
+    for (char &c : name)
+        if (!std::isalnum((unsigned char)c) && c != '_' && c != '-') c = '_';
+    return name;
+}
+
+// Return the absolute directory containing this .so; falls back to CWD.
+static std::string vcs_so_dir()
+{
+    Dl_info info;
+    if (dladdr(reinterpret_cast<void *>(&vcs_so_dir), &info) && info.dli_fname) {
+        std::error_code ec;
+        auto abs = std::filesystem::absolute(info.dli_fname, ec);
+        if (!ec) return abs.parent_path().string();
+    }
+    std::error_code ec;
+    auto cwd = std::filesystem::current_path(ec);
+    return ec ? "." : cwd.string();
+}
+
+#endif
+
+DutBase::DutBase()
+{
+    cycle = 0;
+    argc  = 0;
+    argv  = nullptr;
+}
+
+#if defined(USE_VCS)
+
+DutVcsBase::DutVcsBase()
+{
+    // XXFatal("VCS does not support no-args constructor");
+    exit(-1);
+}
+
+DutVcsBase::DutVcsBase(int argc, char **argv)
+{
+    // save argc and argv for debug
+    this->argc = argc;
+    this->argv = argv;
+    this->init(argc, argv);
+};
+
+void DutVcsBase::init(int argc, char **argv)
+{
+    // initialize VCS context
+    VcsMain(argc, argv);
+
+    // set VCS cycle to 0
+    VcsInit();
+    svSetScope(svGetScopeFromName(this->sv_scope.c_str()));
+
+    // set cycle pointer to 0
+    this->cycle               = 0;
+    this->cycle_hl            = 0;
+    this->vcs_clock_period[0] = 5000;
+    this->vcs_clock_period[1] = 5000;
+    this->vcs_clock_period[2] = 5000 + 5000;
+
+}
+
+DutVcsBase::~DutVcsBase() {};
+
+int DutVcsBase::Step(uint64_t ncycle, bool dump)
+{
+    if (!dump) {
+        // assert(ncycle == 0);
+        VcsSimUntil(&cycle);
+        return 0;
+    }
+
+    // set cycle pointer
+    cycle_hl += ncycle;
+    if (likely(ncycle == 1))
+        cycle += vcs_clock_period[cycle_hl & 1];
+    else
+        cycle += (ncycle >> 1) * vcs_clock_period[2] + (ncycle & 1) * vcs_clock_period[cycle_hl & 1];
+
+    // run simulation
+    VcsSimUntil(&cycle);
+    return 0;
+};
+
+int DutVcsBase::Finish()
+{
+
+
+    finish_PfBDHOhl2mS();
+    return 0;
+};
+
+void DutVcsBase::SetWaveform(const char *filename)
+{
+    if (filename == nullptr || !std::string(filename).ends_with(".fsdb")) {
+        XFatal("VCS trace file must be .fsdb format");
+    }
+    vcs_fsdb_set_waveform_PfBDHOhl2mS(filename);
+};
+void DutVcsBase::SetCoverage(const char *filename)
+{
+
+    XFatal("VCS coverage is not enabled");
+
+};
+void DutVcsBase::ResetCoverage()
+{
+
+    XFatal("VCS coverage is not enabled");
+
+};
+void DutVcsBase::FlushWaveform()
+{
+    vcs_fsdb_flush_waveform_PfBDHOhl2mS();
+};
+bool DutVcsBase::ResumeWaveformDump()
+{
+    vcs_fsdb_waveform_enable_PfBDHOhl2mS(1);
+    return true;
+};
+bool DutVcsBase::PauseWaveformDump()
+{
+    vcs_fsdb_waveform_enable_PfBDHOhl2mS(0);
+    return true;
+};
+void DutVcsBase::WaveformEnable(bool enable)
+{
+    vcs_fsdb_waveform_enable_PfBDHOhl2mS(enable ? 1 : 0);
+};
+int DutVcsBase::CheckPoint(const char *filename)
+{
+    XFatal("VCS checkpoint is not supported");
+};
+int DutVcsBase::Restore(const char *filename)
+{
+    XFatal("VCS restore is not supported");
+};
+uint64_t DutVcsBase::NativeSignalAddr(const char *name){
+    XFatal("VCS NativeSignalAddr is not supported");
+    return 0;
+};
+
+#endif
+
+#if defined(USE_UVS)
+
+DutUvsBase::DutUvsBase()
+{
+    // XXFatal("UVS does not support no-args constructor");
+    exit(-1);
+}
+
+DutUvsBase::DutUvsBase(int argc, char **argv)
+{
+    // save argc and argv for debug
+    this->argc = argc;
+    this->argv = argv;
+    this->init(argc, argv);
+};
+
+void DutUvsBase::init(int argc, char **argv)
+{
+    // initialize context
+    UvsMain(argc, argv);
+
+    // set cycle to 0
+    UvsInit();
+    svSetScope(svGetScopeFromName(this->sv_scope.c_str()));
+
+    // set cycle pointer to 0
+    this->cycle               = 0;
+    this->cycle_hl            = 0;
+    this->uvs_clock_period[0] = 5000;
+    this->uvs_clock_period[1] = 5000;
+    this->uvs_clock_period[2] = 5000 + 5000;
+}
+
+DutUvsBase::~DutUvsBase() {};
+
+int DutUvsBase::Step(uint64_t ncycle, bool dump)
+{
+    if (!dump) {
+        // assert(ncycle == 0);
+        UvsRunUntil(cycle);
+        return 0;
+    }
+
+    // set cycle pointer
+    cycle_hl += ncycle;
+    if (likely(ncycle == 1))
+        cycle += uvs_clock_period[cycle_hl & 1];
+    else
+        cycle += (ncycle >> 1) * uvs_clock_period[2] + (ncycle & 1) * uvs_clock_period[cycle_hl & 1];
+
+    // run simulation
+    UvsRunUntil(cycle);
+    return 0;
+};
+
+int DutUvsBase::Finish()
+{
+    // Finish VCS context
+    finish_PfBDHOhl2mS();
+    return 0;
+};
+
+void DutUvsBase::SetWaveform(const char *filename)
+{
+    XInfo("UVS waveform is not supported");
+};
+void DutUvsBase::SetCoverage(const char *filename)
+{
+    XInfo("UVS coverage is not supported");
+};
+void DutUvsBase::ResetCoverage()
+{
+    XInfo("UVS coverage is not supported");
+};
+void DutUvsBase::FlushWaveform()
+{
+    XInfo("UVS waveform is not supported");
+};
+bool DutUvsBase::ResumeWaveformDump()
+{
+    XInfo("UVS waveform is not supported");
+    return true;
+};
+bool DutUvsBase::PauseWaveformDump()
+{
+    XInfo("UVS waveform is not supported");
+    return true;
+};
+void DutUvsBase::WaveformEnable(bool enable)
+{
+    XInfo("UVS waveform is not supported");
+};
+int DutUvsBase::CheckPoint(const char *filename)
+{
+    XFatal("UVS checkpoint is not supported");
+};
+int DutUvsBase::Restore(const char *filename)
+{
+    XFatal("UVS restore is not supported");
+};
+uint64_t DutUvsBase::NativeSignalAddr(const char *name){
+    XFatal("UVS NativeSignalAddr is not supported");
+    return 0;
+};
+
+#endif // USE_UVS
+
+#if defined(USE_GSIM)
+DutGSimBase::~DutGSimBase()
+{
+    this->Finish();
+}
+
+DutGSimBase::DutGSimBase()
+{
+    this->init(0, nullptr);
+}
+
+DutGSimBase::DutGSimBase(int argc, char **argv)
+{
+    this->init(argc, argv);
+}
+
+void DutGSimBase::init(int argc, char **argv)
+{
+    this->top = new SNutShellCache();
+    // Init pin mem address
+    
+}
+
+int DutGSimBase::Step(uint64_t cycle, bool dump)
+{
+    this->update_write();
+    if(dump) {
+        for (uint64_t i = 0; i < cycle; i++) {
+            this->top->step();
+        }
+    }
+    this->update_read();
+    return 0;
+}
+
+int DutGSimBase::Finish()
+{
+    if(this->top != nullptr) {
+        delete this->top;
+        this->top = nullptr;
+    }
+    return 0;
+}
+
+void DutGSimBase::SetWaveform(const char *filename)
+{
+}
+
+void DutGSimBase::FlushWaveform()
+{
+}
+
+bool DutGSimBase::ResumeWaveformDump()
+{
+    return false;
+}
+
+bool DutGSimBase::PauseWaveformDump()
+{
+    return false;
+}
+
+void DutGSimBase::WaveformEnable(bool enable)
+{
+}
+
+void DutGSimBase::SetCoverage(const char *filename)
+{
+}
+void DutGSimBase::ResetCoverage()
+{
+}
+
+int DutGSimBase::CheckPoint(const char *filename)
+{
+    return 0;
+}
+
+int DutGSimBase::Restore(const char *filename)
+{
+    return 0;
+}
+
+uint64_t DutGSimBase::NativeSignalAddr(const char *name){
+    if (this->pin_address_map.find(name) != this->pin_address_map.end()) {
+        return this->pin_address_map[name];
+    }
+    XWarning("NativeSignalAddr: Pin %s not found", name);
+    return 0;
+}
+
+void DutGSimBase::update_read()
+{
+    // update read pins
+    
+}
+
+void DutGSimBase::update_write()
+{
+    // update write pins
+    
+}
+
+DutGSimBase *dlcreates(int argc, char **argv)
+{
+    DutGSimBase *res = new DutGSimBase(argc, argv);
+    return res;
+}
+typedef DutGSimBase *dlcreates_t(int argc, char **argv);
+
+void dlstep(DutGSimBase *dut, uint64_t ncycle, bool dump)
+{
+    dut->Step(ncycle, dump);
+}
+typedef void step_t(DutGSimBase *, uint64_t, bool);
+#endif
+
+
+#if defined(USE_VERILATOR)
+#include "verilated.h"
+#include "VNutShellCache.h"
+#include "VNutShellCache___024root.h"
+
+#if defined(VL_TRACE)
+#include "VNutShellCache__Syms.h"
+#endif
+
+#if defined(VL_VPI)
+#include "verilated_vpi.h"
+#endif
+
+DutVerilatorBase::DutVerilatorBase()
+{
+    this->init(0, nullptr);
+}
+
+DutVerilatorBase::DutVerilatorBase(int argc, char **argv)
+{
+    // Warn("Shared DPI Library is required for Verilator");
+    //  save argc and argv for debug
+    this->argc = argc;
+    this->argv = argv;
+    this->init(argc, argv);
+};
+
+void DutVerilatorBase::init(int argc, char **argv)
+{
+    // save argc and argv for debug
+    this->argc = argc;
+    this->argv = argv;
+
+    // create top module
+    VerilatedContext *contextp = new VerilatedContext;
+    contextp->randReset(2);
+    contextp->debug(0);
+    contextp->commandArgs(argc, argv);
+
+#if defined(VL_TRACE)
+    contextp->traceEverOn(true);
+#endif
+
+    // create top module
+    this->top = new VNutShellCache {contextp};
+
+    svSetScope(svGetScopeFromName(this->sv_scope.c_str()));
+
+    // set cycle pointer to 0
+    this->cycle = 0;
+
+    // Init pin mem address
+    
+    
+    
+};
+
+DutVerilatorBase::~DutVerilatorBase()
+{
+    // Finish Verilator context
+    this->Finish();
+};
+
+int DutVerilatorBase::Step(uint64_t ncycle, bool dump)
+{
+    cycle += ncycle;
+#if defined(VL_VPI)
+    VerilatedVpi::callValueCbs();
+#endif
+    VNutShellCache *topp = (VNutShellCache *)(top);
+    VerilatedContext *contextp = topp->contextp();
+    if (likely(dump)) {
+        for (uint64_t i = 0; i < ncycle; i++) {
+            topp->eval();
+#if defined(VL_VPI)
+            VerilatedVpi::callValueCbs(); 
+#endif
+            contextp->timeInc(1);
+        }
+    } else {
+        assert(ncycle == 1);
+        topp->eval_step();
+    }
+#if defined(VL_VPI)
+    VerilatedVpi::callValueCbs(); 
+#endif
+#if defined(VL_TRACE)
+    if (unlikely(wave_pause_deferred)) {
+        wave_pause_deferred = !this->PauseWaveformDump();
+    }
+#endif
+
+    return 0;
+};
+
+int DutVerilatorBase::Finish()
+{
+    // Finish Verilator context
+    if (this->top != nullptr) {
+        VerilatedContext *contextp = ((VNutShellCache *)(this->top))->contextp();
+#if defined(VL_COVERAGE)
+        if (this->coverage_file_path.size() > 0)
+            contextp->coveragep()->write(this->coverage_file_path.c_str());
+        else
+            contextp->coveragep()->write("VNutShellCache_coverage.dat");
+#endif
+        ((VNutShellCache *)(this->top))->final();
+        delete (VNutShellCache *)(this->top);
+        delete contextp;
+        this->top = nullptr;
+    }
+    return 0;
+};
+
+void DutVerilatorBase::SetWaveform(const char *filename)
+{
+#if defined(VL_TRACE)
+    ((VNutShellCache *)(this->top))->contextp()->dumpfile(filename);
+    ((VNutShellCache *)(this->top))->rootp->vlSymsp->_traceDumpOpen();
+#else
+    std::cerr << "Verilator waveform is not enabled";
+    exit(-1);
+#endif
+};
+
+void DutVerilatorBase::FlushWaveform()
+{
+#if defined(VL_TRACE)
+    VNutShellCache *topp = (VNutShellCache *)(this->top);
+    if (topp->rootp->vlSymsp->__Vm_dumperp) {
+        topp->rootp->vlSymsp->__Vm_dumperp->flush();
+    }
+#else
+    std::cerr << "Verilator waveform is not enabled";
+    exit(-1);
+#endif
+};
+
+bool DutVerilatorBase::ResumeWaveformDump(){
+#if defined(VL_TRACE)
+    if(((VNutShellCache *)(this->top))->rootp->vlSymsp->__Vm_dumperp)return false;
+    ((VNutShellCache *)(this->top))->rootp->vlSymsp->_traceDumpOpen();
+#else
+    std::cerr << "Verilator waveform is not enabled";
+#endif
+    return true;
+};
+
+bool DutVerilatorBase::PauseWaveformDump(){
+#if defined(VL_TRACE)
+    VNutShellCache *topp = (VNutShellCache *)(this->top);
+    if (unlikely(!topp->rootp->vlSymsp->__Vm_dumperp)) {
+        wave_pause_deferred = true;
+        if (unlikely(!wave_pause_warned)) {
+            XWarning("PauseWaveformDump before dumper exists; will pause when ready");
+            wave_pause_warned = true;
+        }
+        return false;
+    }
+    topp->rootp->vlSymsp->__Vm_dumperp->flush();
+    topp->rootp->vlSymsp->_traceDumpClose();
+#else
+    std::cerr << "Verilator waveform is not enabled";
+#endif
+    return true;
+};
+
+void DutVerilatorBase::WaveformEnable(bool enable=true)
+{
+#if defined(VL_TRACE)
+    VNutShellCache *topp = (VNutShellCache *)(this->top);
+    topp->rootp->vlSymsp->__Vm_dumping = enable;
+#else
+    std::cerr << "Verilator waveform is not enabled";
+    exit(-1);
+#endif
+};
+void DutVerilatorBase::SetCoverage(const char *filename)
+{
+#if defined(VL_COVERAGE)
+    this->coverage_file_path = filename;
+#else
+    std::cerr << "Verilator coverage is not enabled";
+    exit(-1);
+#endif
+};
+void DutVerilatorBase::ResetCoverage()
+{
+    std::cerr << "Verilator coverage reset is not supported";
+    exit(-1);
+};
+
+#if defined(VL_SAVEABLE)
+#include "verilated_save.h"
+int DutVerilatorBase::CheckPoint(const char *filename)
+{
+    VerilatedSave os;
+    os.open(filename);
+    os << this->cycle;
+    os << *(VNutShellCache *)(top);
+    return this->cycle;
+};
+
+int DutVerilatorBase::Restore(const char *filename)
+{
+    VerilatedRestore os;
+    os.open(filename);
+    os >> this->cycle;
+    os >> *(VNutShellCache *)(top);
+    return this->cycle;
+};
+#else
+int DutVerilatorBase::CheckPoint(const char *filename)
+{
+    XFatal("Verilator checkpoint is not enabled");
+};
+
+int DutVerilatorBase::Restore(const char *filename)
+{
+    XFatal("Verilator restore is not enabled");
+};
+#endif
+
+uint64_t DutVerilatorBase::NativeSignalAddr(const char *name){
+    if(this->pin_address_map.find(name) != this->pin_address_map.end()){
+        return this->pin_address_map[name];
+    }
+    XWarning("NativeSignalAddr: Pin %s not found", name);
+    return 0;
+};
+
+void DutVerilatorBase::atClone()
+{
+    if (!this->top) {
+        return;
+    }
+    VNutShellCache *topp = (VNutShellCache *)(this->top);
+    topp->atClone();
+}
+
+DutVerilatorBase *dlcreates(int argc, char **argv)
+{
+    DutVerilatorBase *res = new DutVerilatorBase(argc, argv);
+    return res;
+};
+typedef DutVerilatorBase *dlcreates_t(int argc, char **argv);
+
+void dlstep(DutVerilatorBase *dut, uint64_t ncycle, bool dump)
+{
+    dut->Step(ncycle, dump);
+};
+typedef void step_t(DutVerilatorBase *, uint64_t, bool);
+
+#endif
+
+char *locateLibPath()
+{
+    Dl_info info;
+    if (dladdr((char *)locateLibPath, &info) == 0) { XFatal("Failed to find the shared library path"); }
+
+    std::string lib_path = info.dli_fname;
+    XInfo("Shared DPI Library Path: %s", lib_path.c_str());
+
+    // get PWD
+    std::string pwd = std::filesystem::current_path();
+
+    // get relative path
+    std::string rel_path;
+    if (lib_path.find(pwd) == std::string::npos) {
+        rel_path = lib_path;
+    } else {
+        rel_path = lib_path.substr(pwd.length() + 1);
+    }
+
+    char *res = (char *)malloc(rel_path.size() + 128);
+    strcpy(res, rel_path.c_str());
+    return res;
+}
+
+inline void vcsLibPathConvert(char *path)
+{
+    // locate 'libUT' and replace it with 'libDPI' for VCS
+    // move the other char to next position
+    char *p  = path;
+    int plib = 0, pend = strlen(path) + 1;
+    plib = strstr(path, "libUT") - p;
+    while (pend > plib) {
+        p[pend + 1] = p[pend];
+        pend--;
+    }
+    strncpy(p + plib, "libDPI", 6);
+    XInfo("vcsLibPath %s", path);
+}
+
+int DutUnifiedBase::lib_count     = 0;
+bool DutUnifiedBase::main_ns_flag = false;
+const char DutUnifiedBase::waveform_format[] = "";
+const int DutUnifiedBase::coverage_metrics = 0;
+
+DutUnifiedBase::DutUnifiedBase()
+{
+    this->init(0, nullptr);
+}
+
+DutUnifiedBase::DutUnifiedBase(int argc, char **argv)
+{
+    this->init(argc, (const char **)argv);
+}
+
+DutUnifiedBase::DutUnifiedBase(char *filename)
+{
+    char *name = (char *)malloc(strlen(filename) + 1);
+    strcpy(name, filename);
+    char *argv[] = {name};
+    this->init(1, (const char **)argv);
+    free(name);
+};
+
+DutUnifiedBase::DutUnifiedBase(char *filename, int argc, char **argv)
+{
+    char *name = (char *)malloc(strlen(filename) + 1);
+    strcpy(name, filename);
+    argv[0] = name;
+    this->init(argc, (const char **)argv);
+    free(name);
+};
+
+DutUnifiedBase::DutUnifiedBase(std::initializer_list<const char *> args)
+{
+    int argc          = 0;
+    const char **argv = (const char **)malloc(sizeof(char *) * args.size());
+    for (auto arg : args) { argv[argc++] = arg; }
+    this->init(argc, argv);
+    free(argv);
+};
+
+DutUnifiedBase::DutUnifiedBase(std::vector<std::string> args)
+{
+    int argc          = 0;
+    const char **argv = (const char **)malloc(sizeof(char *)  * args.size());
+    for (auto arg : args) {
+        argv[argc] = (char *)malloc(arg.size() + 1);
+        strcpy((char *)argv[argc], arg.c_str());
+        argc++;
+    }
+    this->init(argc, argv);
+    for (int i = 0; i < argc; i++) {
+        XInfo("Initial Args %d: %s", i, argv[i]);
+        free((char *)argv[i]);
+    }
+    free(argv);
+}
+
+void DutUnifiedBase::init(int argc, const char **argv)
+{
+    this->waveform_paused = 0;
+    // check whether the ENABLE_XINFO is set
+    const char *enable_xinfo_env = std::getenv("ENABLE_XINFO");
+    if (enable_xinfo_env) {
+        auto value = std::string(enable_xinfo_env);
+        if (value == "1") {
+            enable_xinfo = 1;
+        } else if (value == "2") {
+            enable_xinfo = 2;
+        }
+    }
+    // hold argc and argv for later use
+    this->argc = argc;
+    this->argv = (char **)malloc(sizeof(char *) * (argc + 128));
+    memset(this->argv, -1, sizeof(char *) * (argc + 128));
+    for (size_t i = 0; i < argc; i++) {
+        auto tsize    = strlen(argv[i]) + 32;
+        this->argv[i] = (char *)malloc(tsize);
+        memset(this->argv[i], 0, tsize);
+        strcpy(this->argv[i], argv[i]);
+    }
+
+#if defined(USE_VCS)
+    // disable ASLR to avoid VCS doing later
+    // as described in issue #86, VCS will otherwise try to relaunch the process with ASLR disabled
+    // in newer versions, a malformed argv will cause the relaunch to fail
+    XInfo("Disabling ASLR for better compatibility with VCS");
+    int rc = 0;
+    int old_personality = personality(0xffffffff);
+    if (old_personality != -1 && (old_personality & ADDR_NO_RANDOMIZE) == 0)
+        rc = personality(old_personality | ADDR_NO_RANDOMIZE);
+    if (old_personality == -1 || rc == -1) { XWarning("Failed to disable ASLR. If you encounter problems, try to disable ASLR manually."); }
+#endif
+
+    // find whether the shared library path is provided
+    // share library suffix
+    const std::string lib_suffix = ".so";
+    if (argc == 0 || !std::string(this->argv[0]).ends_with(lib_suffix)) {
+        // add the shared library path to argv
+        for (int i = argc; i > 0; i--) { this->argv[i] = this->argv[i - 1]; }
+        this->argv[0] = locateLibPath();
+#if defined(USE_VCS)
+        vcsLibPathConvert(this->argv[0]);
+#endif
+        this->argc++;
+    }
+
+#if defined(USE_VCS)
+    if (vcs_coverage_metrics_mask != 0) {
+        // argv was allocated with 128 extra slots; cap prevents silent overflow.
+        const int argv_cap = this->argc + 128;
+        const auto try_append = [&](const char *key, const std::string &val) {
+            if (!has_argv_option(this->argc, this->argv, key)) {
+                append_argv_option(this->argc, this->argv, key, argv_cap);
+                append_argv_option(this->argc, this->argv, val, argv_cap);
+            }
+        };
+        const std::string metrics = vcs_coverage_metric_string();
+        if (!metrics.empty()) try_append("-cm", metrics);
+        try_append("-cm_name", "NutShellCache");
+        // Anchor .vdb to the .so directory so coverage is written to the
+        // release dir regardless of where pytest/the test is invoked from.
+        try_append("-cm_dir",
+            (std::filesystem::path(vcs_so_dir()) / "NutShellCache.vdb").string());
+    }
+#endif
+
+    // the main namespace instance doesn't need to load the shared library
+    if (!main_ns_flag) {
+        XInfo("Using main namespace");
+#if defined(USE_VERILATOR)
+        this->dut = new DutVerilatorBase(this->argc, this->argv);
+#elif defined(USE_VCS)
+        this->dut = new DutVcsBase(this->argc, this->argv);
+#elif defined(USE_UVS)
+        this->dut = new DutUvsBase(this->argc, this->argv);
+#elif defined(USE_GSIM)
+        this->dut = new DutGSimBase(this->argc, this->argv);
+#endif
+        main_ns_flag = true;
+        lib_handle   = nullptr;
+        return;
+    }
+
+#if !defined(USE_VCS) && !defined(USE_UVS)
+    // get dynamic library path from argv
+    if (this->argc == 0) { XFatal("Shared DPI Library Path is required for Simulator"); }
+
+#if defined(__linux__)
+    this->lib_handle = dlmopen(LM_ID_NEWLM, this->argv[0], RTLD_NOW | RTLD_DEEPBIND);
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    XFatal("Native Windows API to load library is not supported now");
+#else
+    if (dlopen(this->argv[0], RTLD_NOLOAD)) {
+        XFatal(
+            "Dynamic multi-module is only supported in linux!\n"
+            "If you want to create multiple module instances, please use `Static multi-module`"
+            "(reference link: https://github.com/XS-MLVP/picker/blob/master/README.md).\n"
+            "Otherwise, check whether multiple instances of the DUT class have been created."
+            );
+    } else {
+        this->lib_handle = dlopen(this->argv[0], RTLD_NOW | RTLD_LOCAL);
+    }
+#endif
+
+    if (!this->lib_handle) { XFatal("Failed to open shared DPI library %s, %s", this->argv[0], dlerror()); }
+    this->lib_count++;
+
+    // create top module
+    dlcreates_t *dlcreates = (dlcreates_t *)dlsym(this->lib_handle, "dlcreates");
+    if (!dlcreates) { XFatal("Failed to find dlcreates function"); }
+    this->dut = dlcreates(this->argc, this->argv);
+#endif
+}
+
+uint64_t DutUnifiedBase::GetDPIHandle(std::string name, int towards)
+{
+    return this->GetDPIHandle((char *)name.c_str(), towards);
+}
+
+uint64_t DutUnifiedBase::GetVPIFuncPtr(const char *name)
+{
+    return this->GetVPIFuncPtr(std::string(name));
+}
+
+uint64_t DutUnifiedBase::GetVPIFuncPtr(std::string name)
+{
+    void *func;
+    if (this->lib_handle != nullptr) {
+        func = dlsym(this->lib_handle, name.c_str());
+    } else {
+        func = dlsym(RTLD_DEFAULT, name.c_str());
+    }
+    if (func == nullptr) { XInfo("Failed to find VPI function %s", name.c_str()); }
+    return (uint64_t)func;
+}
+
+uint64_t DutUnifiedBase::GetVPIHandleObj(const char *name)
+{
+    return this->GetVPIHandleObj(std::string(name));
+}
+
+uint64_t DutUnifiedBase::GetVPIHandleObj(std::string name)
+{
+    uint64_t vpi_handle = 0;
+#ifndef NO_SV_VPI
+    uint64_t _get_vpi_handle_name = this->GetVPIFuncPtr("vpi_handle_by_name");
+    std::string scope             = name.size() > 0 ? this->dut->sv_scope + "." + name : this->dut->sv_scope;
+    vpi_handle           = ((uint64_t(*)(char *, uint32_t))_get_vpi_handle_name)((char *)scope.c_str(), 0);
+#endif
+    return vpi_handle;
+}
+
+std::vector<std::string> DutUnifiedBase::VPIInternalSignalList(char *name, int depth)
+{
+    return VPIInternalSignalList(std::string(name), depth);
+}
+
+std::vector<std::string> DutUnifiedBase::VPIInternalSignalList(std::string name, int depth)
+{
+    std::vector<std::string> res;
+#ifndef NO_SV_VPI
+    std::string scope = name.size() > 0 ? this->dut->sv_scope + "." + name : this->dut->sv_scope;
+
+    // Define the VPI functions
+    typedef uint64_t vpi_handle_t;
+    typedef vpi_handle_t (*vpi_handle_by_name_t)(char *, vpi_handle_t);
+    typedef vpi_handle_t (*vpi_get_t)(uint32_t, vpi_handle_t);
+    typedef vpi_handle_t (*vpi_get_str_t)(uint32_t, vpi_handle_t);
+    typedef vpi_handle_t (*vpi_scan_t)(vpi_handle_t);
+    typedef vpi_handle_t (*vpi_iterate_t)(uint32_t, vpi_handle_t);
+    typedef vpi_handle_t (*vpi_handle_func)(uint32_t, vpi_handle_t);
+
+#define vpiType 1          /* type of object */
+#define vpiName 2          /* local name of object */
+#define vpiFullName 3      /* full hierarchical name */
+#define vpiModule 32       /* module instance */
+#define vpiModuleArray 112 /* module instance array */
+#define vpiNet 36          /* scalar or vector net */
+#define vpiNetArray 114    /* multidimensional net */
+#define vpiReg 48          /* scalar or vector reg */
+#define vpiRegArray 116    /* multidimensional reg */
+
+    // Get the VPI functions
+    vpi_handle_by_name_t _get_vpi_handle_name = (vpi_handle_by_name_t)this->GetVPIFuncPtr("vpi_handle_by_name");
+    vpi_get_t _vpi_get                        = (vpi_get_t)this->GetVPIFuncPtr("vpi_get");
+    vpi_get_str_t _vpi_get_str                = (vpi_get_str_t)this->GetVPIFuncPtr("vpi_get_str");
+    vpi_scan_t _vpi_scan                      = (vpi_scan_t)this->GetVPIFuncPtr("vpi_scan");
+    vpi_iterate_t _vpi_iterate                = (vpi_iterate_t)this->GetVPIFuncPtr("vpi_iterate");
+    vpi_handle_func _vpi_handle               = (vpi_handle_func)this->GetVPIFuncPtr("vpi_handle");
+
+    // Remove extra "TOP" while input name is empty(TOP)
+    std::function<std::string(std::string)> remove_top = [&](std::string sig) {
+#ifdef USE_VERILATOR
+        return sig.substr(4);
+#else
+        return sig;
+#endif
+    };
+
+    // Define the lambda function to traverse the VPI handle
+    std::function<void(vpi_handle_t, int)> traverse = [&](vpi_handle_t handle, int depth) {
+        if (depth == 0) { return; }
+        vpi_handle_t vpi_handle = 0;
+
+        // get vpi reg
+        vpi_handle_t regs = _vpi_iterate(vpiReg, handle);
+        while ((vpi_handle = _vpi_scan(regs)) != 0) {
+            char *name = (char *)_vpi_get_str(vpiFullName, vpi_handle);
+            XDebug("Found reg %s", name);
+            res.push_back(remove_top(name));
+        }
+
+        // get vpi reg array
+        vpi_handle_t reg_arrays = _vpi_iterate(vpiRegArray, handle);
+        while ((vpi_handle = _vpi_scan(reg_arrays)) != 0) {
+            char *name = (char *)_vpi_get_str(vpiFullName, vpi_handle);
+            XDebug("Found reg array %s", name);
+            res.push_back(remove_top(name));
+        }
+
+        // get vpi net
+        vpi_handle_t nets = _vpi_iterate(vpiNet, handle);
+        while ((vpi_handle = _vpi_scan(nets)) != 0) {
+            char *name = (char *)_vpi_get_str(vpiFullName, vpi_handle);
+            XDebug("Found net %s", name);
+            res.push_back(remove_top(name));
+        }
+
+        // get vpi net array
+        vpi_handle_t net_arrays = _vpi_iterate(vpiNetArray, handle);
+        while ((vpi_handle = _vpi_scan(net_arrays)) != 0) {
+            char *name = (char *)_vpi_get_str(vpiFullName, vpi_handle);
+            XDebug("Found net array %s", name);
+            res.push_back(remove_top(name));
+        }
+
+        // get vpi module
+        vpi_handle_t modules = _vpi_iterate(vpiModule, handle);
+        while ((vpi_handle = _vpi_scan(modules)) != 0) {
+            char *name = (char *)_vpi_get_str(vpiFullName, vpi_handle);
+            XDebug("Found module %s", name);
+            traverse(vpi_handle, depth - 1);
+        }
+
+        // get vpi module array
+        vpi_handle_t module_arrays = _vpi_iterate(vpiModuleArray, handle);
+        while ((vpi_handle = _vpi_scan(module_arrays)) != 0) {
+            char *name = (char *)_vpi_get_str(vpiFullName, vpi_handle);
+            XDebug("Found module array %s", name);
+            traverse(vpi_handle, depth - 1);
+        }
+    };
+
+    // Start iterating the initial scope
+    vpi_handle_t vpi_handle = _get_vpi_handle_name((char *)scope.c_str(), 0);
+    XDebug("Traversing %s %d", scope.c_str(), depth);
+    if (vpi_handle == 0) { XInfo("Failed to find VPI handle %s", scope.c_str()); return res; }
+    XDebug("Found VPI handle 0x%llx, type %lld", vpi_handle, _vpi_get(vpiType, vpi_handle));
+
+    // Traverse the VPI handle
+    traverse(vpi_handle, depth);
+#endif
+    return res;
+}
+
+std::string DutUnifiedBase::GetXSignalCFGPath()
+{
+    char *path = locateLibPath();
+    std::filesystem::path p(path);
+    std::string parent = p.parent_path().string().empty() ? "." : p.parent_path().string();
+    free(path);
+    return  parent + "/NutShellCache_offset.yaml";
+}
+
+uint64_t DutUnifiedBase::GetXSignalCFGBasePtr()
+{
+#ifdef USE_VERILATOR
+    if(0 == strcmp("DPI", "MEM_DIRECT")){
+        return (uint64_t)((VNutShellCache *)(this->dut->top))->rootp;
+    }
+#endif
+#ifdef USE_GSIM
+    if(0 == strcmp("DPI", "MEM_DIRECT")){
+        return (uint64_t)(this->dut->top);
+    }
+#endif
+    return 0;
+}
+
+uint64_t DutUnifiedBase::GetDPIHandle(char *name, int towards)
+{
+    char *func_name = (char *)malloc(strlen(name) + 128);
+    if (towards == 0) {
+        sprintf(func_name, "get_%sxxPfBDHOhl2mS", name);
+    } else if (towards == 1) {
+        sprintf(func_name, "set_%sxxPfBDHOhl2mS", name);
+    } else if (towards == -1) {
+        strcpy(func_name, name);
+    } else {
+        XFatal("Invalid DPI function request %s %d", name, towards);
+    }
+
+    void *func;
+    if (this->lib_handle != nullptr) {
+        func = dlsym(this->lib_handle, func_name);
+    } else {
+        func = dlsym(RTLD_DEFAULT, func_name);
+    }
+
+    // internal only support read
+    if (func == nullptr && towards == 0) { XFatal("Failed to find DPI function %s", func_name); }
+    free(func_name);
+    return (uint64_t)func;
+}
+int DutUnifiedBase::simStep(bool dump)
+{
+    return this->simStep(1, dump);
+}
+int DutUnifiedBase::simStep(uint64_t cycle, bool dump)
+{
+    return this->dut->Step(cycle, dump);
+}
+int DutUnifiedBase::xcommStep(uint64_t base_ptr, uint64_t cycle, bool dump)
+{
+    DutUnifiedBase *dut = (DutUnifiedBase *)base_ptr;
+    return dut->simStep(cycle, dump);
+}
+int DutUnifiedBase::RefreshComb()
+{
+    return this->simStep(1, 0);
+}
+int DutUnifiedBase::Finish()
+{
+    if (!this->dut) { return 0; }
+    this->dut->Finish();
+    delete this->dut;
+    this->dut = nullptr;
+    // this class maintain the other namespace
+    if (this->lib_handle != nullptr) {
+        dlclose(this->lib_handle);
+        this->lib_count--;
+    } else { // this class is using the main namespace
+        this->main_ns_flag = false;
+    }
+    for (int i = 0; i < this->argc; i++) { free(this->argv[i]); }
+    free(this->argv);
+    this->argv = nullptr;
+
+    return 0;
+}
+void DutUnifiedBase::SetCoverage(const std::string filename)
+{
+    return this->dut->SetCoverage(filename.c_str());
+}
+void DutUnifiedBase::SetCoverage(const char *filename)
+{
+    return this->dut->SetCoverage(filename);
+}
+void DutUnifiedBase::ResetCoverage()
+{
+    return this->dut->ResetCoverage();
+}
+int DutUnifiedBase::GetCovMetrics()
+{
+    return DutUnifiedBase::coverage_metrics;
+}
+void DutUnifiedBase::atClone()
+{
+    if (this->dut) {
+        this->dut->atClone();
+    }
+}
+void DutUnifiedBase::SetWaveform(const char *filename)
+{
+    return this->dut->SetWaveform(filename);
+}
+void DutUnifiedBase::SetWaveform(const std::string filename)
+{
+    return this->dut->SetWaveform(filename.c_str());
+}
+std::string DutUnifiedBase::GetWaveFormat()
+{
+    return std::string(DutUnifiedBase::waveform_format);
+}
+void DutUnifiedBase::FlushWaveform()
+{
+    return this->dut->FlushWaveform();
+}
+bool DutUnifiedBase::ResumeWaveformDump()
+{
+    this->waveform_paused = 0;
+    return this->dut->ResumeWaveformDump();
+}
+bool DutUnifiedBase::PauseWaveformDump()
+{
+    this->waveform_paused = 1;
+    return this->dut->PauseWaveformDump();
+}
+int DutUnifiedBase::WaveformPaused()
+{
+    return this->waveform_paused;
+}
+void DutUnifiedBase::WaveformEnable(bool enable)
+{
+    return this->dut->WaveformEnable(enable);
+}
+int DutUnifiedBase::CheckPoint(const char *filename)
+{
+    return this->dut->CheckPoint(filename);
+}
+
+int DutUnifiedBase::CheckPoint(const std::string filename)
+{
+    return this->dut->CheckPoint(filename.c_str());
+}
+
+int DutUnifiedBase::Restore(const char *filename)
+{
+    return this->dut->Restore(filename);
+}
+
+int DutUnifiedBase::Restore(const std::string filename)
+{
+    return this->dut->Restore(filename.c_str());
+}
+
+uint64_t DutUnifiedBase::NativeSignalAddr(const char *name)
+{
+    return this->dut->NativeSignalAddr(name);
+}
+
+
+DutUnifiedBase::~DutUnifiedBase()
+{
+    // Clean up the new instance with the shared library
+    this->Finish();
+}

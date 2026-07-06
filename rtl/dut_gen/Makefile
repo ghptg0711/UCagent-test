@@ -1,0 +1,94 @@
+#Makefile for NutShellCache
+
+export SIMULATOR = verilator
+export TRACE := OFF
+export PROJECT := NutShellCache
+export TARGET := UT_NutShellCache
+export VERBOSE := ON
+export EXAMPLE := OFF
+export TLANG := python
+export SIMULATOR_FLAGS := 
+export CFLAGS := 
+export COVERAGE := OFF
+export CHECKPOINTS := OFF
+export VPI := OFF
+export RW_TYPE := DPI
+NPROC := $(shell (nproc 2>/dev/null || sysctl -n hw.ncpu) 2>/dev/null)
+
+ifeq ($(SIMULATOR), verilator)
+MEM_DIRECT_TARGET_FILE := build/DPINutShellCache/VNutShellCache___024root.h
+endif
+ifeq ($(SIMULATOR), gsim)
+MEM_DIRECT_TARGET_FILE := build/_SRC/NutShellCache.h
+endif
+
+all: release 
+
+compile:
+	mkdir -p build
+	cp pli.tab build/pli.tab
+	@echo -n "[TIME LOG] verilator generate START: "  && date +%s.%3N
+	/usr/bin/time cmake . -Bbuild -DSIMULATOR=$(SIMULATOR) -DTRACE=$(TRACE) -DPROJECT=$(PROJECT) -DCMAKE_BUILD_PARALLEL=$(NPROC) -DRW_TYPE=$(RW_TYPE)
+	@echo -n "[TIME LOG] verilator generate END: " && date +%s.%3N
+	/usr/bin/time cmake --build build --config release --parallel $(NPROC)
+	@echo -n "[TIME LOG] verilator build END: " && date +%s.%3N
+
+ifeq ($(RW_TYPE), MEM_DIRECT)
+ifdef MEM_DIRECT_TARGET_FILE
+	@echo "MEM_DIRECT_TARGET_FILE: ${MEM_DIRECT_TARGET_FILE}"
+# file exsit check with Makefile
+ifeq ($(wildcard ${MEM_DIRECT_TARGET_FILE}),)
+	@echo -n "[TIME LOG] mem_direct export START: " && date +%s.%3N
+	@rm -rf mem_direct
+	@/usr/local/bin/picker export ${MEM_DIRECT_TARGET_FILE} \
+		--source_dir /usr/local/share/picker/template/mem_direct --target_dir ./mem_direct \
+		--source_module_name NutShellCache --sim verilator
+	@echo -n "[TIME LOG] mem_direct export END: " && date +%s.%3N
+endif
+	@echo -n "[TIME LOG] mem_direct gen START: " && date +%s.%3N
+	@cd mem_direct && make -j$(NPROC) TOP_NAME=NutShellCache
+	@./mem_direct/export.bin > mem_direct/NutShellCache_offset.yaml
+	@rm -rf mem_direct_tmp
+	@echo -n "[TIME LOG] mem_direct gen END: " && date +%s.%3N
+endif
+endif
+
+release: compile
+	@cp -r build/${TARGET} .
+	# Bring .vdb alongside the .so so the runtime -cm_dir (anchored to the .so
+	# directory by dut_base.cpp) finds the database and appends new testdata.
+	@cp -r build/${PROJECT}.vdb . 2>/dev/null || true
+	@cp build/_SRC/*.h ${TARGET}/ 2>/dev/null|| true
+	@cp build/_SRC/*.hpp ${TARGET}/ 2>/dev/null|| true
+	@cp *.hpp ${TARGET}/
+	@cp mem_direct/NutShellCache_offset.yaml ${TARGET}/NutShellCache_offset.yaml 2>/dev/null|| true
+	@make -f mk/${TLANG}.mk
+	
+
+ifeq ($(VERBOSE), OFF) # if VERBOSE is OFF
+	@rm -rf build cmake cpp mk python java scala golang lua CMakeLists.txt dut_base.* 2>/dev/null|| true
+	@rm -rf ${TARGET}.cpp filelist.f *.fst 2>/dev/null|| true
+	@rm -rf mem_direct
+	@mv ${TARGET}/*.v ${TARGET}/*.sv . 2>/dev/null|| true
+	@cd ${TARGET} && make purge
+ifeq ($(COVERAGE), OFF)
+	@rm Makefile
+	@rm *.v *.sv
+endif
+endif
+
+coverage:
+ifeq ($(COVERAGE), ON)
+ifeq ($(SIMULATOR), verilator)
+	@rm -rf coverage/
+	@verilator_coverage -write-info coverage.info ./V${PROJECT}_coverage.dat
+	@genhtml coverage.info --output-directory coverage
+else
+# TODO: add vcs?
+	@echo $(SIMULATOR) TBD
+endif
+else
+	@echo coverage is not on
+endif
+
+clean:
