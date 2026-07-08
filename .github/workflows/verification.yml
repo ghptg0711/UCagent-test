@@ -1,0 +1,41 @@
+name: NutShell Cache Verification
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-asyncio
+      - name: Run unit tests
+        run: |
+          PYTHONPATH=src python -m pytest tests/ -v --asyncio-mode=auto --ignore=tests/test_real_dut_smoke.py
+      - name: Run core regression
+        run: |
+          PYTHONPATH=src python -c "from cache_vip.regression import run_core_regression; r = run_core_regression(seeds=(1,2,3), count=500); print('Status:', r['status'])"
+
+  real-dut-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-asyncio
+      - name: Run real DUT tests
+        run: |
+          PYTHONPATH=src:. python -m pytest tests/test_real_dut_smoke.py -v --asyncio-mode=auto
