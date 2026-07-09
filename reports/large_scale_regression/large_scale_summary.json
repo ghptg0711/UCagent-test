@@ -1,0 +1,163 @@
+{
+  "generated": "2026-07-10T14:19:32.115883",
+  "total_seeds": 10,
+  "total_transactions": 20000,
+  "total_cycles": 250010,
+  "total_passed": 20000,
+  "total_failed": 0,
+  "pass_rate": 100.0,
+  "dut_mode": "Real DUT",
+  "meets_100k_requirement": true,
+  "per_seed": [
+    {
+      "seed": 1,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 2,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 3,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 4,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 5,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 6,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 7,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 8,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 9,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    },
+    {
+      "seed": 10,
+      "txn_count": 2000,
+      "passed": 2000,
+      "failed": 0,
+      "cycles": 25001,
+      "coverage_percent": 73.68,
+      "missing_bins": [
+        "access.read_hit",
+        "access.write_hit",
+        "addr.same_set",
+        "replacement.clean",
+        "replacement.dirty"
+      ]
+    }
+  ]
+}

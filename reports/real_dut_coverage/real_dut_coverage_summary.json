@@ -1,0 +1,10 @@
+{
+  "dut_type": "Real NutShell Cache (DUTRealNutShellCache)",
+  "total_transactions": 207,
+  "directed_transactions": 7,
+  "crv_transactions": 200,
+  "crv_seed": 42,
+  "verilator_coverage_available": false,
+  "exclusion_justification": "Verilator line/branch/FSM/toggle coverage not available because the pre-compiled DUT .so was not built with --coverage flag. Functional coverage (19 bins) is used as primary metric. To enable code coverage, recompile NutShell RTL with: verilator --cc --coverage -Wno-fatal NutShellCache.v",
+  "status": "PASS"
+}

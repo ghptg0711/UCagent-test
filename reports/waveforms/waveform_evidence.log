@@ -1,0 +1,8 @@
+Waveform Export Log
+Date: 11341.592314975
+DUT: DUTRealNutShellCache
+Transactions: 500
+Cycles: 1000
+Trace file requested: /mnt/d/UCagent/reports/waveforms/real_dut_trace.vcd
+Note: xspcomm DUT may use internal trace mechanism.
+EnableTrace API called on DUT instance.

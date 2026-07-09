@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "smoke": {
+    "name": "smoke",
+    "status": "PASS",
+    "transactions": 5,
+    "coverage_percent": 57.89473684210526,
+    "missing_bins": [
+      "access.write_miss",
+      "addr.line_boundary",
+      "addr.same_set",
+      "mask.single",
+      "replacement.clean",
+      "replacement.dirty",
+      "size.1",
+      "size.2"
+    ]
+  },
+  "directed": {
+    "name": "directed",
+    "status": "PASS",
+    "transactions": 64,
+    "coverage_percent": 100.0,
+    "missing_bins": []
+  },
+  "crv": [
+    {
+      "name": "crv_seed_1",
+      "status": "PASS",
+      "transactions": 1000,
+      "coverage_percent": 94.73684210526316,
+      "missing_bins": [
+        "addr.same_set"
+      ]
+    },
+    {
+      "name": "crv_seed_2",
+      "status": "PASS",
+      "transactions": 1000,
+      "coverage_percent": 94.73684210526316,
+      "missing_bins": [
+        "addr.same_set"
+      ]
+    },
+    {
+      "name": "crv_seed_3",
+      "status": "PASS",
+      "transactions": 1000,
+      "coverage_percent": 94.73684210526316,
+      "missing_bins": [
+        "addr.same_set"
+      ]
+    },
+    {
+      "name": "crv_seed_4",
+      "status": "PASS",
+      "transactions": 1000,
+      "coverage_percent": 94.73684210526316,
+      "missing_bins": [
+        "addr.same_set"
+      ]
+    },
+    {
+      "name": "crv_seed_5",
+      "status": "PASS",
+      "transactions": 1000,
+      "coverage_percent": 94.73684210526316,
+      "missing_bins": [
+        "addr.same_set"
+      ]
+    }
+  ],
+  "coverage": {
+    "coverage_percent": 100.0,
+    "covered_bins": 19,
+    "total_bins": 19,
+    "missing": [],
+    "bins": {
+      "access.read_hit": 2,
+      "access.read_miss": 8,
+      "access.write_hit": 4,
+      "access.write_miss": 5,
+      "addr.line_boundary": 1,
+      "addr.same_set": 12,
+      "latency.long": 7,
+      "latency.short": 12,
+      "mask.full": 17,
+      "mask.single": 1,
+      "mask.sparse": 1,
+      "op.read": 10,
+      "op.write": 9,
+      "replacement.clean": 2,
+      "replacement.dirty": 2,
+      "size.1": 2,
+      "size.2": 2,
+      "size.4": 1,
+      "size.8": 14
+    }
+  },
+  "fault_detection": {
+    "read_corruption": true,
+    "partial_write_mask_drop": true,
+    "dirty_writeback_corruption": true,
+    "response_order_swap": true
+  }
+}
