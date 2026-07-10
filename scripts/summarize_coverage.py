@@ -17,6 +17,7 @@ COVERAGE_DIR = Path("reports/verilator_coverage")
 INFO_PATH = COVERAGE_DIR / "coverage.info"
 DAT_PATH = COVERAGE_DIR / "coverage.dat"
 SUMMARY_PATH = COVERAGE_DIR / "coverage_summary.json"
+METADATA_PATH = COVERAGE_DIR / "coverage_metadata.json"
 
 
 def _pct(hit: int, total: int) -> float:
@@ -45,6 +46,19 @@ def parse_lcov(path: Path) -> dict[str, dict[str, float | int]]:
     }
 
 
+def coverage_timestamp() -> str:
+    """Return the simulation timestamp when available, otherwise current time."""
+    if METADATA_PATH.exists():
+        try:
+            metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+            timestamp = metadata.get("timestamp")
+            if isinstance(timestamp, str) and timestamp:
+                return timestamp
+        except json.JSONDecodeError:
+            pass
+    return datetime.now().isoformat(timespec="seconds")
+
+
 def main() -> None:
     source = INFO_PATH if INFO_PATH.exists() else DAT_PATH
     if not source.exists():
@@ -53,7 +67,7 @@ def main() -> None:
     result = parse_lcov(source)
     result["metadata"] = {
         "tool": "Verilator",
-        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "timestamp": coverage_timestamp(),
         "source_file": str(source),
         "dut_file": "rtl/dut_gen/NutShellCache.v",
     }
