@@ -1,0 +1,24 @@
+Cycle 0
+Cycle 50000
+Cycle 100000
+Cycle 150000
+Cycle 200000
+Cycle 250000
+Cycle 300000
+Cycle 350000
+Cycle 400000
+Cycle 450000
+Cycle 500000
+Cycle 550000
+Cycle 600000
+Cycle 650000
+Cycle 700000
+Cycle 750000
+Cycle 800000
+Cycle 850000
+Cycle 900000
+Cycle 950000
+Coverage data written to reports/verilator_coverage/coverage.dat
+Coverage metadata written to reports/verilator_coverage/coverage_metadata.json
+Total cycles: 1000000
+Waveform written to reports/waveforms/nutshell_cache_trace.vcd

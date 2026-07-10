@@ -1,0 +1,9 @@
+{
+  "tool": "Verilator",
+  "tool_version": "5.032 2025-01-01",
+  "timestamp": "2026-07-10T15:35:40+0800",
+  "simulation_seed": 42,
+  "total_cycles": 1000000,
+  "dut_file": "rtl/dut_gen/NutShellCache.v",
+  "coverage_file": "reports/verilator_coverage/coverage.dat"
+}
