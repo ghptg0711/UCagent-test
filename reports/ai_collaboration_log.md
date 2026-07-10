@@ -318,6 +318,7 @@ Conduct a strict review of the entire project from a judge's perspective, identi
 | 6: Bug Fixes | 0 new files | 4 files modified | 5 bugs |
 | 7: Review-Driven Hardening | 0 new files | 8 files modified | 9 issues (5 P0 + 4 P1) |
 | 8: Real DUT Integration | 0 new files | 5 files modified | Real DUT verified |
+| 9: Industrial Sign-off | 0 new files | 6 files modified | 2 RTL bugs (BUG-010/011) |
 
 ## Prompt Tuning Case Studies
 
@@ -425,7 +426,7 @@ Conduct a strict review of the entire project from a judge's perspective, identi
 8. **2 个 RTL Bug**：BUG-010 (LRU round-robin 替代真 LRU) + BUG-011 (脏驱逐后不发起 fill 导致死锁)
 
 ### Result
-25 tests passed (含 8 个 OOO scoreboard + 2 个新 RTL bug 测试), 5/5 fault detection, Verilator coverage 报告生成, VCD 波形导出, Docker 环境构建。
+68 tests passing (含 8 OOO scoreboard + 2 RTL bug evidence + 6 real DUT smoke), 5/5 fault detection, Verilator coverage 报告生成, VCD 波形导出, Docker 环境构建, BUG-010/011 RTL 缺陷定位。
 
 ---
 

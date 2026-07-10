@@ -4,11 +4,13 @@
 
 ### 1.1 测试通过
 
-- [x] 全部单元测试通过（50/50）
+- [x] 全部单元测试通过（68/68）
 - [x] 核心回归通过（5 seeds x 1000 txns）
 - [x] DUT smoke 测试通过（mock DUT, 7/7）
-- [x] Directed cases 测试通过（14/14）
-- [x] Fault injection 4/4 检出
+- [x] Real DUT smoke 测试通过（NutShell Cache, 6/6, WSL2）
+- [x] Directed cases 测试通过（16/16，含 BUG-010/011 RTL 缺陷证据）
+- [x] OOO Scoreboard 测试通过（8/8）
+- [x] Fault injection 5/5 检出（含 tag_compare_error）
 - [x] Edge cases 测试通过（17/17）
 
 ### 1.2 覆盖率
@@ -41,7 +43,7 @@
 - [x] Scoreboard（结果比对）
 - [x] 覆盖率收集器（CoverageCollector）
 - [x] Memory Agent（ScriptedMemoryAgent + ToffeeMemoryAgent）
-- [x] Fault Injection（4 类故障）
+- [x] Fault Injection（5 类故障，含 tag_compare_error）
 - [x] Regression 脚本（基础版 + 增强版）
 
 ### 2.2 参数化配置
@@ -89,8 +91,7 @@
 
 ### 3.2 优化计划
 
-- [x] [score_90_optimization_plan.md](file:///d:/UCagent/docs/score_90_optimization_plan.md) - 90分优化路线
-- [x] [next_round_prompts.md](file:///d:/UCagent/docs/next_round_prompts.md) - 下一轮优化提示词
+- [x] 见 `docs/final_checklist.md` 第 7 节 P0-P2 完成记录
 
 ### 3.3 报告
 

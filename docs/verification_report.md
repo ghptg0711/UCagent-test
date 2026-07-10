@@ -68,13 +68,15 @@ cache-vip-regress --seeds 1,2,3,4,5 --count 1000 --report-dir reports
 | Check | Result |
 | --- | --- |
 | Python syntax check | PASS |
-| Unit tests (total) | PASS, 50 passed |
-| Directed cases | PASS, 14 cases |
+| Unit tests (total) | PASS, 68 passed |
+| Directed cases | PASS, 16 cases (incl. BUG-010/011 RTL defect evidence) |
 | Edge cases | PASS, 17 cases |
 | DUT smoke (mock) | PASS, 7 cases |
+| Real DUT smoke | PASS, 6 cases (WSL2) |
+| OOO Scoreboard | PASS, 8 cases |
 | Core regression (5 seeds x 1000 txns) | PASS |
 | Required core coverage bins | 100%, 19/19 |
-| Fault detection | PASS, 4/4 detected |
+| Fault detection | PASS, 5/5 detected (incl. tag_compare_error) |
 
 Generated reports:
 
@@ -90,11 +92,13 @@ Generated reports:
 | `test_reference_model.py` | 3 | Reference model write/read, partial write, dirty eviction |
 | `test_memory_agent.py` | 1 | Memory agent backpressure + latency + masked write |
 | `test_generator_scoreboard.py` | 7 | Generator + scoreboard integration |
-| `test_directed_cases.py` | 14 | Advanced directed cases (LRU, FIFO, boundary, etc.) |
+| `test_directed_cases.py` | 16 | Advanced directed cases (LRU, FIFO, boundary, BUG-010/011 RTL defect evidence) |
 | `test_edge_cases.py` | 17 | Edge cases (boundary, alignment, concurrency, stress) |
 | `test_dut_smoke.py` | 7 | Mock DUT smoke tests via Toffee adapter |
+| `test_real_dut_smoke.py` | 6 | Real NutShell Cache DUT smoke tests (WSL2) |
+| `test_ooo_scoreboard.py` | 8 | Out-of-order scoreboard matching, orphan/repeat/data mismatch detection |
 | `test_regression.py` | 1 | Core regression CLI smoke test |
-| **Total** | **50** | |
+| **Total** | **68** | |
 
 ## 6. Parameterized Cache Policies
 
@@ -148,13 +152,14 @@ The `ToffeeMemoryAgent` provides:
 | Partial write mask drop | Follow-up read mismatch | Detected |
 | Dirty writeback data corruption | Writeback data mismatch | Detected |
 | Response order swap | Transaction ID order mismatch | Detected |
+| Tag compare error (hit→miss) | Expected hit but DUT reports miss | Detected |
 
 ## 10. Current Status by Persona
 
 | Persona | Focus | Status |
 | --- | --- | --- |
 | 验证架构师 | 方案完整可复现 | Core 完整，DUT 边界层就绪 |
-| 测试工程师 | 用例充分、激励有效 | 14 directed + 17 edge + CRV，50 测试通过 |
+| 测试工程师 | 用例充分、激励有效 |- 14 directed + 17 edge + CRV，68 测试通过 |
 | 协议专家 | Cache 行为符合规范 | LRU/FIFO/Random + write-allocate 全部验证 |
 | 性能分析师 | 边界和压力覆盖 | 边界访问、backpressure、多 seed 回归 |
 | 文档工程师 | 提交物完整清晰 | 持续更新中 |
@@ -171,14 +176,14 @@ The `ToffeeMemoryAgent` provides:
 | BUG-006 | 2026-07-10 | Regression | Enhanced regression report generation KeyError | Closed |
 | BUG-007 | 2026-07-10 | Memory agent | ToffeeMemoryAgent hardcoded line size to 64 bytes | Closed |
 | BUG-008 | 2026-07-10 | Regression | Enhanced regression DUT mode not implemented | Closed |
+| BUG-009 | 2026-07-10 | Verification logic | CRV seed 5 false positive due to eviction-unaware read verification | Closed |
+| BUG-010 | 2026-07-10 | RTL design bug | NutShell Cache LRU uses round-robin (`lru_way = hit_way + 1`) instead of true LRU recency tracking | Closed (DUT defect) |
+| BUG-011 | 2026-07-10 | RTL design bug | Dirty eviction does not generate fill request after writeback, causing deadlock | Closed (DUT defect) |
 
 ## 12. Known Limitations
 
-- The current report includes mock DUT verification via Toffee adapter. Real NutShell Cache RTL binding requires the actual Picker-generated model and signal names.
-- The adapter in `src/cache_vip/toffee_adapter.py` is fully implemented for mock DUT; it needs signal name mapping update for real DUT.
-- Memory-side protocol details may need adjustment based on real DUT interface (SRAM-like, AXI-like, TileLink-like, or custom).
-- `ToffeeMemoryAgent` has Toffee signal binding code but needs real DUT memory interface confirmation.
-- Waveform paths, real failing seeds, and RTL bug fixes should be appended after real DUT smoke and regression runs.
+- NutShell Cache uses SimpleBus-style responses without AXI DECERR/SLVERR encoding. Timeout/deadlock behavior is covered instead (see `docs/verification_matrix.md`).
+- RTL fixes for BUG-010 (LRU round-robin) and BUG-011 (dirty eviction deadlock) are upstream NutShell work; the verification environment detects and documents the defects.
 
 ## 13. Conclusion
 

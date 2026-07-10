@@ -7,7 +7,7 @@
 - Core 验收：不依赖真实 DUT，验证 Python reference model、generator、scoreboard、coverage、fault injection。
 - DUT 验收：依赖 NutShell Cache Picker/Toffee 接入，验证真实 RTL 行为。
 
-当前仓库已完成 Core 验收；DUT 验收需要真实信号映射和 Picker 产物。
+当前仓库已完成 Core 验收与 DUT 验收（真实 NutShell Cache RTL，6 smoke + 16 directed + 8 OOO scoreboard 测试通过，5/5 故障检出，BUG-010/011 RTL 缺陷已定位）。
 
 ## 2. Core 验收命令
 
@@ -32,10 +32,10 @@ PYTHONPATH=src .venv/bin/python -m cache_vip.regression --seeds 1,2,3 --count 30
 | 检查项 | 标准 | 当前结果 |
 | --- | --- | --- |
 | Python 语法 | `compileall` 无错误 | PASS |
-| 单元测试 | 全部 pytest 通过 | PASS, 12 passed |
+| 单元测试 | 全部 pytest 通过 | PASS, 68 passed |
 | 回归入口 | `status` 为 `PASS` | PASS |
 | required coverage | 不低于 90% | PASS, 100% |
-| fault detection | 4 类 fault 均检出 | PASS, 4/4 |
+| fault detection | 5 类 fault 均检出 | PASS, 5/5 |
 | 报告生成 | md/json 报告存在，包含 required bin hit table | PASS |
 
 生成文件：
@@ -108,6 +108,7 @@ Core 已完成以下负向验收：
 - partial write mask drop。
 - dirty writeback data corruption。
 - response order swap。
+- tag compare error（hit 误报为 miss）。
 
 DUT 接入后，建议把 fault injection 放在 memory agent 或 response monitor 边界，证明真实 testbench 也能检出同类问题。
 

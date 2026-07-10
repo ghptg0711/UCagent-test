@@ -121,10 +121,10 @@ PYTHONPATH=src .venv/bin/python -m cache_vip.regression --seeds 1,2,3 --count 20
 | 项目 | 结果 |
 | --- | --- |
 | compileall | PASS |
-| pytest | 12 passed |
+| pytest | 68 passed |
 | core regression | PASS, 3 seeds x 300 txns |
 | required core coverage | 100%, 19/19 |
-| fault detection | 4/4 detected |
+| fault detection | 5/5 detected |
 
 ## 5. 真实 DUT 接入方案
 

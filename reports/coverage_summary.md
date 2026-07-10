@@ -5,9 +5,9 @@
 | 指标 | 值 |
 | --- | --- |
 | 总体覆盖率 | 100.0% (19/19 bins) |
-| 测试集 | smoke + directed + CRV x 5 seeds |
+| 测试集 | smoke + directed + OOO scoreboard + CRV x 5 seeds |
 | 事务总数 | 5069 |
-| Fault Detection | 4/4 (100%) |
+| Fault Detection | 5/5 (100%) |
 
 ## Coverage Bins Details
 
@@ -89,20 +89,22 @@
 | partial_write_mask_drop | ✅ Yes |
 | dirty_writeback_corruption | ✅ Yes |
 | response_order_swap | ✅ Yes |
+| tag_compare_error | ✅ Yes |
 
 ## Test Suite Summary
 
 | 测试集 | 用例数 | 通过 | 失败 | 跳过 |
 | --- | --- | --- | --- | --- |
-| test_directed_cases.py | 14 | 14 | 0 | 0 |
+| test_directed_cases.py | 16 | 16 | 0 | 0 |
 | test_dut_smoke.py | 7 | 7 | 0 | 0 |
 | test_edge_cases.py | 17 | 17 | 0 | 0 |
 | test_generator_scoreboard.py | 7 | 7 | 0 | 0 |
 | test_memory_agent.py | 1 | 1 | 0 | 0 |
+| test_ooo_scoreboard.py | 8 | 8 | 0 | 0 |
 | test_real_dut_smoke.py | 6 | 6 | 0 | 0 | (WSL2) |
 | test_reference_model.py | 3 | 3 | 0 | 0 |
 | test_regression.py | 1 | 1 | 0 | 0 |
-| **总计** | **56** | **56** | **0** | **0** |
+| **总计** | **68** | **68** | **0** | **0** |
 
 ## 真实 DUT 覆盖率
 
