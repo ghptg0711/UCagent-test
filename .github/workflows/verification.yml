@@ -32,7 +32,13 @@ jobs:
           python -m pytest tests/ -v --ignore=tests/test_real_dut_smoke.py --cov=cache_vip --cov-report=term-missing
       - name: Run core regression
         run: |
-          PYTHONPATH=src python -c "from cache_vip.regression import run_core_regression; r = run_core_regression(seeds=(1,2,3), count=500); print('Status:', r['status'])"
+          PYTHONPATH=src python -m cache_vip.regression --seeds 1,2,3 --count 500 --report-dir reports/regression-results
+      - name: Upload core regression report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: core-regression-report
+          path: reports/regression-results/
 
   dut-contract-tests:
     runs-on: ubuntu-latest
@@ -41,20 +47,42 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: '3.12'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e . -r requirements-dev.txt
-      - name: Verify independent DUT contract
+      - name: Check repository integrity
         run: |
-          python -m pytest tests/test_dut_regression.py tests/test_real_dut_adapter_unit.py -v
+          python tools/check_repo_health.py
+      - name: Verify DUT adapter unit tests (portable)
+        run: |
+          python -m pytest tests/test_real_dut_adapter_unit.py -v
+      - name: Verify DUT regression contract (oracle + adapter pattern)
+        run: |
+          python -m pytest tests/test_dut_regression.py -v
+      - name: Verify oracle detects masked write errors
+        run: |
+          python -m pytest tests/test_regression_oracle.py -v
+      - name: Run full portable test suite
+        run: |
+          python -m pytest tests/ --ignore=tests/test_real_dut_smoke.py -v --cov=cache_vip --cov-report=term-missing
+      - name: Upload portable coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: portable-coverage
+          path: .coverage
 
   real-dut-tests:
     if: github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, x64, real-dut]
     steps:
       - uses: actions/checkout@v5
+      - name: Verify Python and xspcomm versions
+        run: |
+          python3 --version
+          python3 -c "import xspcomm; print('xspcomm', xspcomm.__version__)" 2>/dev/null || echo "xspcomm not installed"
       - name: Stage host-compatible Real DUT artifacts
         env:
           REAL_DUT_ARTIFACT_DIR: ${{ vars.REAL_DUT_ARTIFACT_DIR }}
@@ -68,6 +96,28 @@ jobs:
             bash tools/generate_real_cache_rtl.sh
             bash scripts/build_real_dut.sh
           fi
-      - name: Run real DUT tests on compatible Picker host
+      - name: Run real DUT smoke tests
         run: |
           bash run_wsl_tests.sh
+      - name: Run real DUT CRV regression (3 seeds x 500 txns)
+        run: |
+          PYTHONPATH=src python -m cache_vip.dut_regression --seeds 1,2,3 --count 500
+      - name: Run BUG-010/011/012 DUT defect tests
+        run: |
+          PYTHONPATH=src python -m pytest tests/test_real_dut_smoke.py -k "bug" -v
+        continue-on-error: true
+      - name: Generate Verilator coverage report
+        run: |
+          if [[ -f build/real_dut/coverage.dat ]]; then
+            verilator_coverage --rank build/real_dut/coverage.dat > reports/real_dut_coverage/verilator_rank.txt 2>&1 || true
+          fi
+      - name: Upload real DUT results and artifacts
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: real-dut-results
+          path: |
+            reports/real_dut_coverage/
+            build/real_dut/coverage.dat
+            build/real_dut/RealNutShellCache.fst
+            build/real_dut/*.log

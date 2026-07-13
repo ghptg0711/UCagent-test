@@ -26,35 +26,21 @@
     {
       "name": "crv_seed_1",
       "status": "PASS",
-      "transactions": 1000,
+      "transactions": 300,
       "coverage_percent": 100.0,
       "missing_bins": []
     },
     {
       "name": "crv_seed_2",
       "status": "PASS",
-      "transactions": 1000,
+      "transactions": 300,
       "coverage_percent": 100.0,
       "missing_bins": []
     },
     {
       "name": "crv_seed_3",
       "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 100.0,
-      "missing_bins": []
-    },
-    {
-      "name": "crv_seed_4",
-      "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 100.0,
-      "missing_bins": []
-    },
-    {
-      "name": "crv_seed_5",
-      "status": "PASS",
-      "transactions": 1000,
+      "transactions": 300,
       "coverage_percent": 100.0,
       "missing_bins": []
     }
@@ -70,7 +56,7 @@
       "access.write_hit": 4,
       "access.write_miss": 5,
       "addr.line_boundary": 1,
-      "addr.same_set": 12,
+      "addr.same_set": 16,
       "latency.long": 7,
       "latency.short": 12,
       "mask.full": 17,

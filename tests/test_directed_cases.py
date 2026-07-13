@@ -363,5 +363,37 @@ class TestMemoryAgent:
         assert not resp2.hit or resp2.evicted, "Addr 0x00 should have been evicted"
 
 
+
+    def test_write_miss_data_merge_bug012(self):
+        """BUG-012: Verify write-miss correctly merges CPU data with fill line.
+
+        A simplified RTL that only fills with memory data and ignores
+        the pending CPU write would lose the write data.
+        """
+        params = CacheParams(sets=1, ways=1, line_bytes=64)
+        ref = ReferenceCache(params)
+
+        write_addr = 0x40
+        write_data = 0x1122334455667788
+
+        write_resp = ref.access(
+            CacheTxn(
+                CacheOp.WRITE,
+                addr=write_addr,
+                size=8,
+                data=write_data,
+                mask=0xFF,
+                txn_id=1,
+            )
+        )
+        assert not write_resp.hit
+
+        read_resp = ref.access(
+            CacheTxn(CacheOp.READ, addr=write_addr, size=8, txn_id=2)
+        )
+        assert read_resp.hit
+        assert read_resp.data == write_data
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

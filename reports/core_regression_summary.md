@@ -25,7 +25,7 @@ Status: `PASS`
 | `access.write_hit` | 4 |
 | `access.write_miss` | 5 |
 | `addr.line_boundary` | 1 |
-| `addr.same_set` | 12 |
+| `addr.same_set` | 16 |
 | `latency.long` | 7 |
 | `latency.short` | 12 |
 | `mask.full` | 17 |
@@ -42,8 +42,6 @@ Status: `PASS`
 
 ## CRV
 
-- crv_seed_1: `1000` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_2: `1000` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_3: `1000` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_4: `1000` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_5: `1000` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_1: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_2: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_3: `300` transactions, status `PASS`, coverage `100.0%`

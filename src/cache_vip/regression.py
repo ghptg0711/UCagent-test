@@ -424,93 +424,128 @@ def _run_fault_detection(params: CacheParams) -> dict[str, bool]:
 
 
 def _detect_read_corruption(params: CacheParams) -> bool:
-    """Write data, then read it back. FaultInjector flips a bit in the read
-    response; scoreboard must detect the data mismatch."""
-    scoreboard = Scoreboard(ReferenceCache(params))
-    write = CacheTxn(CacheOp.WRITE, addr=0x100, size=4, data=0x12345678, mask=0xF, txn_id=1)
-    read = CacheTxn(CacheOp.READ, addr=0x100, size=4, txn_id=2)
-    scoreboard.push_request(write)
-    scoreboard.compare_response(write, CacheResponse(txn_id=write.txn_id))
-    expected = scoreboard.push_request(read)
-    faulty = FaultInjector.flip_read_bit(expected, bit=3)
-    try:
-        scoreboard.compare_response(read, faulty)
-    except ScoreboardMismatch:
-        return True
+    """End-to-end fault detection: write/read with data bit-flip injected at
+    DUT response path. Scoreboard must catch it via ScoreboardMismatch.
+
+    Models DUT data bus corruption (sense amp bit-flip, crosstalk, etc.).
+    """
+    good_ref = ReferenceCache(params)
+    faulty_ref = ReferenceCache(params)
+    scoreboard = Scoreboard(good_ref)
+    txns = [
+        CacheTxn(CacheOp.WRITE, addr=0x100, size=4, data=0x12345678, mask=0xF, txn_id=1),
+        CacheTxn(CacheOp.READ, addr=0x100, size=4, txn_id=2),
+    ]
+    for index, txn in enumerate(txns):
+        actual = faulty_ref.access(txn)
+        if index == 1:
+            actual = FaultInjector.flip_read_bit(actual, bit=3)
+        scoreboard.push_request(txn)
+        try:
+            scoreboard.compare_response(txn, actual)
+        except ScoreboardMismatch:
+            return True
     return False
 
 
 def _detect_partial_write_mask_drop(params: CacheParams) -> bool:
-    """Two writes to the same address with different masks, then read.
-    FaultInjector drops a mask bit; the read should show wrong data."""
-    ref_good = ReferenceCache(params)
-    ref_faulty = ReferenceCache(params)
+    """End-to-end fault detection: wmask bit dropped on DUT write path.
+    Scoreboard must detect data corruption on subsequent read.
+
+    Models DUT byte-write enable stuck bit (write mask register fault).
+    """
+    good_ref = ReferenceCache(params)
+    faulty_ref = ReferenceCache(params)
+    scoreboard = Scoreboard(good_ref)
     txns = [
         CacheTxn(CacheOp.WRITE, addr=0x180, size=4, data=0x11223344, mask=0xF, txn_id=1),
         CacheTxn(CacheOp.WRITE, addr=0x180, size=4, data=0xAABBCCDD, mask=0b0101, txn_id=2),
         CacheTxn(CacheOp.READ, addr=0x180, size=4, txn_id=3),
     ]
-    scoreboard = Scoreboard(ref_good)
-    actual_txns = [txns[0], FaultInjector.drop_mask_bit(txns[1], bit=0), txns[2]]
-    try:
-        for expected_txn, actual_txn in zip(txns, actual_txns, strict=True):
-            scoreboard.push_request(expected_txn)
-            scoreboard.compare_response(expected_txn, ref_faulty.access(actual_txn))
-    except ScoreboardMismatch:
-        return True
+    for index, txn in enumerate(txns):
+        actual_txn = txn
+        if index == 1:
+            actual_txn = FaultInjector.drop_mask_bit(txn, bit=0)
+        actual = faulty_ref.access(actual_txn)
+        scoreboard.push_request(txn)
+        try:
+            scoreboard.compare_response(txn, actual)
+        except ScoreboardMismatch:
+            return True
     return False
 
 
 def _detect_dirty_writeback_corruption() -> bool:
-    """Write dirty data, evict it. FaultInjector corrupts writeback;
-    scoreboard must detect the data mismatch."""
+    """End-to-end fault detection: dirty eviction writeback data corrupted.
+    Scoreboard must detect the mismatch via subsequent read.
+
+    Models DUT writeback data path stuck bit causing memory corruption.
+    """
     params = CacheParams(sets=1, ways=1, line_bytes=64)
-    scoreboard = Scoreboard(ReferenceCache(params))
+    good_ref = ReferenceCache(params)
+    faulty_ref = ReferenceCache(params)
+    scoreboard = Scoreboard(good_ref)
     write = CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1)
     evict = CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2)
-    scoreboard.push_request(write)
-    scoreboard.compare_response(write, CacheResponse(txn_id=write.txn_id))
-    expected = scoreboard.push_request(evict)
-    faulty = FaultInjector.corrupt_writeback_byte(expected)
-    try:
-        scoreboard.compare_response(evict, faulty)
-    except ScoreboardMismatch:
-        return True
+    for index, txn in enumerate([write, evict]):
+        actual = faulty_ref.access(txn)
+        if index == 1:
+            actual = FaultInjector.corrupt_writeback_byte(actual)
+        scoreboard.push_request(txn)
+        try:
+            scoreboard.compare_response(txn, actual)
+        except ScoreboardMismatch:
+            return True
     return False
 
 
 def _detect_response_order_swap(params: CacheParams) -> bool:
-    """Two transactions in sequence; FaultInjector swaps their responses.
-    Scoreboard must detect the txn_id order mismatch."""
-    scoreboard = Scoreboard(ReferenceCache(params))
+    """End-to-end fault detection: two consecutive responses swapped at DUT
+    output interface. Scoreboard must detect txn_id mismatch.
+
+    Models DUT response ordering logic failure (output FIFO pointer error).
+    """
+    good_ref = ReferenceCache(params)
+    faulty_ref = ReferenceCache(params)
+    scoreboard = Scoreboard(good_ref)
     txns = [
         CacheTxn(CacheOp.WRITE, addr=0x240, size=4, data=0xCAFEBABE, mask=0xF, txn_id=1),
         CacheTxn(CacheOp.READ, addr=0x240, size=4, txn_id=2),
     ]
-    responses = [scoreboard.push_request(txn) for txn in txns]
-    swapped = FaultInjector.swap_order(responses)
-    try:
-        scoreboard.compare_response(txns[0], swapped[0])
-    except ScoreboardMismatch:
-        return True
+    faulty_responses = FaultInjector.swap_order(
+        [faulty_ref.access(txn) for txn in txns]
+    )
+    for index, txn in enumerate(txns):
+        scoreboard.push_request(txn)
+        try:
+            scoreboard.compare_response(txn, faulty_responses[index])
+        except ScoreboardMismatch:
+            return True
     return False
 
 
 def _detect_tag_compare_error(params: CacheParams) -> bool:
-    """Write data to fill a cache line, then read it back (should hit).
-    FaultInjector flips the hit flag so the scoreboard sees a miss instead.
-    The scoreboard must detect the hit/miss mismatch."""
-    scoreboard = Scoreboard(ReferenceCache(params))
-    write = CacheTxn(CacheOp.WRITE, addr=0x300, size=4, data=0xDEADBEEF, mask=0xF, txn_id=1)
-    read = CacheTxn(CacheOp.READ, addr=0x300, size=4, txn_id=2)
-    scoreboard.push_request(write)
-    scoreboard.compare_response(write, CacheResponse(txn_id=write.txn_id))
-    expected = scoreboard.push_request(read)
-    faulty = FaultInjector.flip_tag_match(expected)
-    try:
-        scoreboard.compare_response(read, faulty)
-    except ScoreboardMismatch:
-        return True
+    """End-to-end fault detection: tag comparator output flipped at DUT
+    interface. Scoreboard must detect hit/miss mismatch.
+
+    Models DUT tag comparison stuck-at fault (incorrect hit/miss signaling).
+    """
+    good_ref = ReferenceCache(params)
+    faulty_ref = ReferenceCache(params)
+    scoreboard = Scoreboard(good_ref)
+    txns = [
+        CacheTxn(CacheOp.WRITE, addr=0x300, size=4, data=0xDEADBEEF, mask=0xF, txn_id=1),
+        CacheTxn(CacheOp.READ, addr=0x300, size=4, txn_id=2),
+    ]
+    for index, txn in enumerate(txns):
+        actual = faulty_ref.access(txn)
+        if index == 1:
+            actual = FaultInjector.flip_tag_match(actual)
+        scoreboard.push_request(txn)
+        try:
+            scoreboard.compare_response(txn, actual)
+        except ScoreboardMismatch:
+            return True
     return False
 
 
