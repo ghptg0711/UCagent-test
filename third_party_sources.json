@@ -1,0 +1,18 @@
+{
+  "repositories": [
+    {
+      "path": "NutShell",
+      "url": "https://github.com/OSCPU/NutShell.git",
+      "commit": "041f694965728ea183a0622daa1734002bf4621e",
+      "optional": true,
+      "purpose": "Upstream source used to generate the submitted Cache RTL"
+    },
+    {
+      "path": "NutShell/difftest",
+      "url": "https://github.com/OpenXiangShan/difftest.git",
+      "commit": "261b4413184c901fa45bb3387f8c40a702d56ebd",
+      "optional": true,
+      "purpose": "NutShell upstream submodule"
+    }
+  ]
+}

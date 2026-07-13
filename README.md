@@ -24,7 +24,10 @@
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
-pip install pytest pytest-asyncio
+pip install -r requirements-dev.txt
+
+# 检查 Git 对象、gitlink、嵌套仓库和漏提交文件
+python tools/check_repo_health.py
 
 # 运行测试
 python -m pytest tests/ -v --asyncio-mode=auto
@@ -64,6 +67,8 @@ PYTHONPATH=src:. python -m pytest tests/test_real_dut_smoke.py -v --asyncio-mode
 注意：NutShell Cache RTL 以预编译 Verilog 形式引入（非 Chisel/Scala 源码）。
 原始源码来自 NutShell 项目的 Cache 子系统，通过 Chisel 编译为 Verilog 后提交，
 以确保验证环境的可复现性。
+本地可选的 `NutShell/` 源码仓库不会作为顶层 gitlink 提交；其来源与固定提交记录在
+`third_party_sources.json`，仓库健康检查会在该目录存在时验证提交、工作区和对象完整性。
 
 ## Verification Results
 

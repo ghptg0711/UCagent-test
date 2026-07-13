@@ -17,7 +17,11 @@ jobs:
           python-version: '3.14'
       - name: Install dependencies
         run: |
-          pip install pytest pytest-asyncio
+          python -m pip install --upgrade pip
+          python -m pip install -e . -r requirements-dev.txt
+      - name: Check repository integrity
+        run: |
+          python tools/check_repo_health.py
       - name: Run unit tests
         run: |
           PYTHONPATH=src python -m pytest tests/ -v --asyncio-mode=auto --ignore=tests/test_real_dut_smoke.py
@@ -35,7 +39,11 @@ jobs:
           python-version: '3.14'
       - name: Install dependencies
         run: |
-          pip install pytest pytest-asyncio
+          python -m pip install --upgrade pip
+          python -m pip install -e . -r requirements-dev.txt
+      - name: Check repository integrity
+        run: |
+          python tools/check_repo_health.py
       - name: Run real DUT tests
         run: |
           PYTHONPATH=src:. python -m pytest tests/test_real_dut_smoke.py -v --asyncio-mode=auto
