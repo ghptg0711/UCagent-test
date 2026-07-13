@@ -100,9 +100,7 @@ async def main() -> None:
             "verilator --cc --coverage -Wno-fatal NutShellCache.v"
         ),
         "status": (
-            "PASS"
-            if functional_coverage["coverage_percent"] >= 90.0
-            else "INCOMPLETE_COVERAGE"
+            "PASS" if functional_coverage["coverage_percent"] >= 90.0 else "INCOMPLETE_COVERAGE"
         ),
     }
     summary_path = REPORT_DIR / "real_dut_coverage_summary.json"

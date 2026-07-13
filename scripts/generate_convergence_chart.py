@@ -12,15 +12,14 @@ Example usage:
 from __future__ import annotations
 
 import csv
-import json
+import sys
 from pathlib import Path
 from typing import Any
 
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cache_vip.regression import run_core_regression
 from cache_vip.reference_model import CacheParams
+from cache_vip.regression import run_core_regression
 
 
 def generate_convergence_data(
@@ -49,17 +48,19 @@ def generate_convergence_data(
         covered_bins.update(k for k, v in current_bins.items() if v > 0)
         covered_extended.update(k for k, v in current_extended_bins.items() if v > 0)
 
-        data.append({
-            "seed": seed,
-            "coverage_percent": coverage["coverage_percent"],
-            "covered_bins": len(covered_bins),
-            "total_bins": coverage["total_bins"],
-            "extended_coverage_percent": coverage["extended_coverage_percent"],
-            "extended_covered": len(covered_extended),
-            "extended_total": coverage["extended_total"],
-            "cumulative_covered": sorted(list(covered_bins)),
-            "cumulative_extended_covered": sorted(list(covered_extended)),
-        })
+        data.append(
+            {
+                "seed": seed,
+                "coverage_percent": coverage["coverage_percent"],
+                "covered_bins": len(covered_bins),
+                "total_bins": coverage["total_bins"],
+                "extended_coverage_percent": coverage["extended_coverage_percent"],
+                "extended_covered": len(covered_extended),
+                "extended_total": coverage["extended_total"],
+                "cumulative_covered": sorted(list(covered_bins)),
+                "cumulative_extended_covered": sorted(list(covered_extended)),
+            }
+        )
 
     return data
 
@@ -111,25 +112,29 @@ def write_csv(data: list[dict[str, Any]], output_path: str | Path) -> None:
 
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "seed",
-            "coverage_percent",
-            "covered_bins",
-            "total_bins",
-            "extended_coverage_percent",
-            "extended_covered",
-            "extended_total",
-        ])
+        writer.writerow(
+            [
+                "seed",
+                "coverage_percent",
+                "covered_bins",
+                "total_bins",
+                "extended_coverage_percent",
+                "extended_covered",
+                "extended_total",
+            ]
+        )
         for entry in data:
-            writer.writerow([
-                entry["seed"],
-                entry["coverage_percent"],
-                entry["covered_bins"],
-                entry["total_bins"],
-                entry["extended_coverage_percent"],
-                entry["extended_covered"],
-                entry["extended_total"],
-            ])
+            writer.writerow(
+                [
+                    entry["seed"],
+                    entry["coverage_percent"],
+                    entry["covered_bins"],
+                    entry["total_bins"],
+                    entry["extended_coverage_percent"],
+                    entry["extended_covered"],
+                    entry["extended_total"],
+                ]
+            )
 
 
 def write_report(data: list[dict[str, Any]], output_path: str | Path) -> None:
@@ -147,7 +152,7 @@ def write_report(data: list[dict[str, Any]], output_path: str | Path) -> None:
         "## Executive Summary",
         "",
         f"- Total seeds: {len(data)}",
-        f"- Transactions per seed: 500",
+        "- Transactions per seed: 500",
         f"- Final core coverage: {last_entry['coverage_percent']:.1f}% ({last_entry['covered_bins']}/{last_entry['total_bins']})",
         f"- Final extended coverage: {last_entry['extended_coverage_percent']:.1f}% ({last_entry['extended_covered']}/{last_entry['extended_total']})",
         "",
@@ -183,7 +188,7 @@ def write_report(data: list[dict[str, Any]], output_path: str | Path) -> None:
         curr = data[i]
         core_gain = curr["coverage_percent"] - prev["coverage_percent"]
         ext_gain = curr["extended_coverage_percent"] - prev["extended_coverage_percent"]
-        lines.append(f"- Seed {i} → {i+1}: Core +{core_gain:.1f}%, Extended +{ext_gain:.1f}%")
+        lines.append(f"- Seed {i} → {i + 1}: Core +{core_gain:.1f}%, Extended +{ext_gain:.1f}%")
 
     lines.append("")
     lines.append("### Saturation Point")
@@ -248,9 +253,11 @@ def main() -> None:
     print(f"Generated convergence report: {args.report}")
 
     last = data[-1]
-    print(f"\nFinal coverage:")
+    print("\nFinal coverage:")
     print(f"  Core: {last['coverage_percent']:.1f}% ({last['covered_bins']}/{last['total_bins']})")
-    print(f"  Extended: {last['extended_coverage_percent']:.1f}% ({last['extended_covered']}/{last['extended_total']})")
+    print(
+        f"  Extended: {last['extended_coverage_percent']:.1f}% ({last['extended_covered']}/{last['extended_total']})"
+    )
 
 
 if __name__ == "__main__":

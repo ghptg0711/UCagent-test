@@ -377,7 +377,7 @@ class CoverageHoleAnalyzer:
             return HoleAttribution(
                 bin_name=bin_name,
                 category=HoleCategory.HARD_TO_REACH,
-                root_cause=f"Replacement type cross requires specific eviction scenario",
+                root_cause="Replacement type cross requires specific eviction scenario",
                 required_conditions=[
                     "Specific eviction type must occur",
                     "Specific access type must trigger it",
@@ -389,7 +389,7 @@ class CoverageHoleAnalyzer:
             return HoleAttribution(
                 bin_name=bin_name,
                 category=HoleCategory.HARD_TO_REACH,
-                root_cause=f"Access latency cross requires specific access type with specific latency",
+                root_cause="Access latency cross requires specific access type with specific latency",
                 required_conditions=[
                     "Specific access type (read/write hit/miss)",
                     "Specific latency condition (long/short)",
@@ -417,7 +417,7 @@ class CoverageHoleAnalyzer:
             return HoleAttribution(
                 bin_name=bin_name,
                 category=HoleCategory.CONFIG_BLOCKED,
-                root_cause=f"Write allocate policy requires write-allocate configuration",
+                root_cause="Write allocate policy requires write-allocate configuration",
                 required_conditions=[
                     "Cache must be configured with write_allocate=True",
                     "Write miss must occur to trigger allocation",
@@ -474,7 +474,6 @@ class CoverageHoleAnalyzer:
             report_lines.append("| Bin Name | Root Cause | Difficulty | Action |")
             report_lines.append("| --- | --- | --- | --- |")
             for item in items:
-                bugs = ", ".join(item.associated_bugs) if item.associated_bugs else "-"
                 report_lines.append(
                     f"| {item.bin_name} | {item.root_cause} | {'★' * item.difficulty_score} | {item.suggested_action} |"
                 )
@@ -506,15 +505,17 @@ class CoverageHoleAnalyzer:
             result["by_category"][cat.value] = count
 
         for attr in self.attributions:
-            result["attributions"].append({
-                "bin_name": attr.bin_name,
-                "category": attr.category.value,
-                "root_cause": attr.root_cause,
-                "required_conditions": attr.required_conditions,
-                "suggested_action": attr.suggested_action,
-                "associated_bugs": attr.associated_bugs,
-                "difficulty_score": attr.difficulty_score,
-            })
+            result["attributions"].append(
+                {
+                    "bin_name": attr.bin_name,
+                    "category": attr.category.value,
+                    "root_cause": attr.root_cause,
+                    "required_conditions": attr.required_conditions,
+                    "suggested_action": attr.suggested_action,
+                    "associated_bugs": attr.associated_bugs,
+                    "difficulty_score": attr.difficulty_score,
+                }
+            )
 
         return json.dumps(result, indent=2)
 
@@ -531,7 +532,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    with open(args.input, "r") as f:
+    with open(args.input) as f:
         coverage_summary = json.load(f)
 
     analyzer = CoverageHoleAnalyzer(coverage_summary)

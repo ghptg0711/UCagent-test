@@ -22,9 +22,8 @@ Example usage:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 
 @dataclass
@@ -195,7 +194,7 @@ class PromptBugMatrix:
                     "Added: 'Implement boundary tests for cross-line and multi-set scenarios'",
                 ],
                 verification_space_expansion=[
-                    "Cross-coverage (size×mask, replacement×type, access×latency)",
+                    "Cross-coverage (size x mask, replacement x type, access x latency)",
                     "Writeback address validation",
                     "Cross-line access detection",
                     "Multi-set eviction consistency",
@@ -329,7 +328,9 @@ class PromptBugMatrix:
             key_changes = (
                 p.key_changes[0][:50] + "..." if len(p.key_changes[0]) > 50 else p.key_changes[0]
             )
-            lines.append(f"| {p.version} | {p.date} | {key_changes} | {p.impact_score}/100 | {bugs} |")
+            lines.append(
+                f"| {p.version} | {p.date} | {key_changes} | {p.impact_score}/100 | {bugs} |"
+            )
         lines.append("")
 
         lines.append("## Verification Space Expansion by Iteration")
@@ -417,7 +418,9 @@ class PromptBugMatrix:
         lines.append("| Prompt Version | Impact Score | Coverage Increase | Bugs Found |")
         lines.append("| --- | --- | --- | --- |")
         for p in self.prompt_iterations:
-            lines.append(f"| {p.version} | {p.impact_score}/100 | {p.measurable_improvement} | {len(p.bugs_detected)} |")
+            lines.append(
+                f"| {p.version} | {p.impact_score}/100 | {p.measurable_improvement} | {len(p.bugs_detected)} |"
+            )
         lines.append("")
 
         path.write_text("\n".join(lines))
@@ -433,33 +436,39 @@ class PromptBugMatrix:
         }
 
         for p in self.prompt_iterations:
-            result["prompt_iterations"].append({
-                "version": p.version,
-                "date": p.date,
-                "key_changes": p.key_changes,
-                "verification_space_expansion": p.verification_space_expansion,
-                "bugs_detected": p.bugs_detected,
-                "measurable_improvement": p.measurable_improvement,
-                "impact_score": p.impact_score,
-            })
+            result["prompt_iterations"].append(
+                {
+                    "version": p.version,
+                    "date": p.date,
+                    "key_changes": p.key_changes,
+                    "verification_space_expansion": p.verification_space_expansion,
+                    "bugs_detected": p.bugs_detected,
+                    "measurable_improvement": p.measurable_improvement,
+                    "impact_score": p.impact_score,
+                }
+            )
 
         for bug in self.bug_detections:
-            result["bug_detections"].append({
-                "bug_id": bug.bug_id,
-                "description": bug.description,
-                "detection_prompt_version": bug.detection_prompt_version,
-                "root_cause_analysis": bug.root_cause_analysis,
-                "verification_evidence": bug.verification_evidence,
-                "fix_recommendation": bug.fix_recommendation,
-            })
+            result["bug_detections"].append(
+                {
+                    "bug_id": bug.bug_id,
+                    "description": bug.description,
+                    "detection_prompt_version": bug.detection_prompt_version,
+                    "root_cause_analysis": bug.root_cause_analysis,
+                    "verification_evidence": bug.verification_evidence,
+                    "fix_recommendation": bug.fix_recommendation,
+                }
+            )
 
         for link in self.causal_links:
-            result["causal_links"].append({
-                "prompt_version": link.prompt_version,
-                "expanded_space": link.expanded_space,
-                "bug_id": link.bug_id,
-                "description": link.description,
-            })
+            result["causal_links"].append(
+                {
+                    "prompt_version": link.prompt_version,
+                    "expanded_space": link.expanded_space,
+                    "bug_id": link.bug_id,
+                    "description": link.description,
+                }
+            )
 
         return json.dumps(result, indent=2)
 

@@ -28,6 +28,7 @@ from .transactions import CacheOp, CacheResponse, CacheTxn
 @dataclass
 class WritebackEvent:
     """Expected or actual writeback event from dirty eviction."""
+
     txn_id: int
     addr: int
     data: bytes
@@ -63,7 +64,11 @@ class OooScoreboard:
                 f"duplicate txn_id={txn.txn_id} already pending in OOO scoreboard"
             )
         self.pending[txn.txn_id] = (txn, response)
-        if response.evicted_dirty and response.writeback_addr is not None and response.writeback_data is not None:
+        if (
+            response.evicted_dirty
+            and response.writeback_addr is not None
+            and response.writeback_data is not None
+        ):
             self.expected_writebacks[txn.txn_id] = WritebackEvent(
                 txn_id=txn.txn_id,
                 addr=response.writeback_addr,
@@ -109,9 +114,7 @@ class OooScoreboard:
             )
         if expected.data != actual.data:
             self.mismatched_writebacks += 1
-            raise ScoreboardMismatch(
-                f"writeback data mismatch txn_id={actual.txn_id}"
-            )
+            raise ScoreboardMismatch(f"writeback data mismatch txn_id={actual.txn_id}")
         self.matched_writebacks += 1
 
     def _check_fields(self, txn: CacheTxn, expected: CacheResponse, actual: CacheResponse) -> None:

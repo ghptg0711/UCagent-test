@@ -313,9 +313,7 @@ class RealCacheAdapter:
             hit=hit,
             evicted_dirty=bool(writebacks),
             writeback_addr=writeback_addr,
-            observed_fields=frozenset(
-                {"txn_id", "data", "hit", "evicted_dirty", "writeback_addr"}
-            ),
+            observed_fields=frozenset({"txn_id", "data", "hit", "evicted_dirty", "writeback_addr"}),
         )
 
     @property

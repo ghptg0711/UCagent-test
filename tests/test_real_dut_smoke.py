@@ -152,9 +152,7 @@ async def test_bug010_real_dut_lru_victim(setup_real_dut):
                 )
             )
         for txn_id, tag in enumerate((0, 1, 0), start=200):
-            response = await runner.execute(
-                CacheTxn(CacheOp.READ, tag * stride, 8, txn_id=txn_id)
-            )
+            response = await runner.execute(CacheTxn(CacheOp.READ, tag * stride, 8, txn_id=txn_id))
             assert response.hit is True
 
         await runner.execute(CacheTxn(CacheOp.READ, 4 * stride, 8, txn_id=300))

@@ -34,9 +34,7 @@ def test_coverage_hole_analyzer_classifies_all_supported_bin_families(tmp_path) 
         "policy.unknown.value",
         "custom.unclassified",
     ]
-    analyzer = CoverageHoleAnalyzer(
-        {"missing": missing[:14], "extended_missing": missing[14:]}
-    )
+    analyzer = CoverageHoleAnalyzer({"missing": missing[:14], "extended_missing": missing[14:]})
 
     attributions = analyzer.analyze()
 

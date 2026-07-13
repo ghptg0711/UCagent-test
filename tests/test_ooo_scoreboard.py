@@ -133,7 +133,7 @@ class TestOooScoreboard:
     def test_writeback_match_success(self):
         """Correct writeback event should match without error."""
         sb = OooScoreboard()
-        wb_data = b"\xAA\xBB\xCC\xDD" + b"\x00" * 60
+        wb_data = b"\xaa\xbb\xcc\xdd" + b"\x00" * 60
         txn = CacheTxn(CacheOp.READ, addr=0x400, size=4, txn_id=7)
         resp = CacheResponse(
             txn_id=7,
@@ -209,13 +209,23 @@ class TestOooScoreboard:
 
         txn1 = CacheTxn(CacheOp.WRITE, addr=0x040, size=4, data=0x11, mask=0xF, txn_id=1)
         resp1 = CacheResponse(
-            txn_id=1, data=0, hit=False, evicted=True, evicted_dirty=True,
-            writeback_addr=0x000, writeback_data=wb1,
+            txn_id=1,
+            data=0,
+            hit=False,
+            evicted=True,
+            evicted_dirty=True,
+            writeback_addr=0x000,
+            writeback_data=wb1,
         )
         txn2 = CacheTxn(CacheOp.WRITE, addr=0x0C0, size=4, data=0x22, mask=0xF, txn_id=2)
         resp2 = CacheResponse(
-            txn_id=2, data=0, hit=False, evicted=True, evicted_dirty=True,
-            writeback_addr=0x080, writeback_data=wb2,
+            txn_id=2,
+            data=0,
+            hit=False,
+            evicted=True,
+            evicted_dirty=True,
+            writeback_addr=0x080,
+            writeback_data=wb2,
         )
         sb.push_expected(txn1, resp1)
         sb.push_expected(txn2, resp2)

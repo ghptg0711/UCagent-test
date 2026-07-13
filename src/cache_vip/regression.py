@@ -5,14 +5,14 @@ import json
 from collections.abc import Iterable
 from pathlib import Path
 
+from .coverage_analyzer import CoverageHoleAnalyzer
 from .faults import FaultInjector
 from .generator import CacheGenerator
 from .oracle import ArchitecturalMemoryOracle
 from .reference_model import CacheParams, ReferenceCache
 from .regression_analysis import write_reports
 from .scoreboard import Scoreboard, ScoreboardMismatch
-from .transactions import CacheOp, CacheResponse, CacheTxn
-from .coverage_analyzer import CoverageHoleAnalyzer
+from .transactions import CacheOp, CacheTxn
 
 
 def run_core_regression(
@@ -523,9 +523,7 @@ def _detect_response_order_swap(params: CacheParams) -> bool:
         CacheTxn(CacheOp.WRITE, addr=0x240, size=4, data=0xCAFEBABE, mask=0xF, txn_id=1),
         CacheTxn(CacheOp.READ, addr=0x240, size=4, txn_id=2),
     ]
-    faulty_responses = FaultInjector.swap_order(
-        [faulty_ref.access(txn) for txn in txns]
-    )
+    faulty_responses = FaultInjector.swap_order([faulty_ref.access(txn) for txn in txns])
     for index, txn in enumerate(txns):
         scoreboard.push_request(txn)
         try:

@@ -33,6 +33,7 @@ class FakeDUT:
     def Finish(self) -> None:
         self.finished = True
 
+
 @pytest.mark.asyncio
 async def test_real_adapter_preserves_dut_read_data(monkeypatch) -> None:
     adapter = RealCacheAdapter()

@@ -101,30 +101,34 @@ class RtlStateTrajectoryExtractor:
                 info["reason"] = "Transaction complete"
                 info["response_data"] = 0xDEADBEEF
 
-            transitions.append(StateTransition(
-                cycle=i * 2,
-                state=state,
-                next_state=next_state,
-                triggering_signal=f"state_transition_{i}",
-                signal_value=i,
-                additional_info=info,
-            ))
+            transitions.append(
+                StateTransition(
+                    cycle=i * 2,
+                    state=state,
+                    next_state=next_state,
+                    triggering_signal=f"state_transition_{i}",
+                    signal_value=i,
+                    additional_info=info,
+                )
+            )
 
         self.trajectory = transitions
 
         for i in range(0, len(states) * 2, 2):
-            self.snapshots.append(RtlSnapshot(
-                cycle=i,
-                signals={
-                    "cache_state": states[i // 2][0],
-                    "req_valid": i > 0,
-                    "resp_valid": i > 10,
-                    "hit_detected": i == 6,
-                    "miss_detected": i == 8,
-                    "eviction_pending": i == 10,
-                    "writeback_active": i == 12,
-                }
-            ))
+            self.snapshots.append(
+                RtlSnapshot(
+                    cycle=i,
+                    signals={
+                        "cache_state": states[i // 2][0],
+                        "req_valid": i > 0,
+                        "resp_valid": i > 10,
+                        "hit_detected": i == 6,
+                        "miss_detected": i == 8,
+                        "eviction_pending": i == 10,
+                        "writeback_active": i == 12,
+                    },
+                )
+            )
 
     def write_csv(self, output_path: str | Path) -> None:
         path = Path(output_path)
@@ -143,14 +147,16 @@ class RtlStateTrajectoryExtractor:
                 ]
             )
             for t in self.trajectory:
-                writer.writerow([
-                    t.cycle,
-                    t.state,
-                    t.next_state,
-                    t.triggering_signal,
-                    t.signal_value,
-                    json.dumps(t.additional_info),
-                ])
+                writer.writerow(
+                    [
+                        t.cycle,
+                        t.state,
+                        t.next_state,
+                        t.triggering_signal,
+                        t.signal_value,
+                        json.dumps(t.additional_info),
+                    ]
+                )
 
     def write_snapshots_csv(self, output_path: str | Path) -> None:
         path = Path(output_path)
@@ -166,7 +172,7 @@ class RtlStateTrajectoryExtractor:
 
         with open(path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["cycle"] + sorted_signals)
+            writer.writerow(["cycle", *sorted_signals])
             for snap in self.snapshots:
                 row = [snap.cycle]
                 for signal in sorted_signals:
@@ -218,20 +224,24 @@ class RtlStateTrajectoryExtractor:
         }
 
         for t in self.trajectory:
-            result["trajectory"].append({
-                "cycle": t.cycle,
-                "state": t.state,
-                "next_state": t.next_state,
-                "triggering_signal": t.triggering_signal,
-                "signal_value": t.signal_value,
-                "additional_info": t.additional_info,
-            })
+            result["trajectory"].append(
+                {
+                    "cycle": t.cycle,
+                    "state": t.state,
+                    "next_state": t.next_state,
+                    "triggering_signal": t.triggering_signal,
+                    "signal_value": t.signal_value,
+                    "additional_info": t.additional_info,
+                }
+            )
 
         for snap in self.snapshots:
-            result["snapshots"].append({
-                "cycle": snap.cycle,
-                "signals": snap.signals,
-            })
+            result["snapshots"].append(
+                {
+                    "cycle": snap.cycle,
+                    "signals": snap.signals,
+                }
+            )
 
         return json.dumps(result, indent=2)
 

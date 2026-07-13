@@ -19,7 +19,6 @@ from cache_vip.generator import CacheGenerator, GeneratorProfile
 from cache_vip.oracle import ArchitecturalMemoryOracle
 from cache_vip.real_dut_config import REAL_DUT_CACHE_PARAMS
 from cache_vip.reference_model import CacheParams, ReferenceCache
-from cache_vip.transactions import CacheOp
 
 
 def _is_same_set_revisit(addr: int, params: CacheParams, visited_sets: set[int]) -> bool:

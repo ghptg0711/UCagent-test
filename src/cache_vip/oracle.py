@@ -13,8 +13,7 @@ class ArchitecturalMemoryOracle:
     def check_and_apply(self, txn: CacheTxn, response: CacheResponse) -> None:
         if txn.op is CacheOp.READ:
             expected = sum(
-                self._bytes.get(txn.addr + index, 0) << (8 * index)
-                for index in range(txn.size)
+                self._bytes.get(txn.addr + index, 0) << (8 * index) for index in range(txn.size)
             )
             if response.data != expected:
                 raise ScoreboardMismatch(

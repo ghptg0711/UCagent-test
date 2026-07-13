@@ -28,10 +28,9 @@ Example usage:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from enum import Enum
 from pathlib import Path
-from typing import Any
 
 from .reference_model import CacheParams, ReferenceCache
 from .scoreboard import Scoreboard, ScoreboardMismatch
@@ -174,6 +173,7 @@ class AlternativeReferenceModel:
     def _select_victim(self, set_idx: int) -> int:
         if self.replacement == "random":
             import random
+
             return random.randint(0, self.ways - 1)
         elif self.replacement == "fifo":
             min_count = min(self.lru_count[set_idx])
@@ -263,9 +263,10 @@ class CrossValidationScoreboard:
             return txn
         elif injection_type == InjectionType.ADDRESS_OFFSET:
             return replace(txn, addr=txn.addr + 0x40)
-        elif injection_type == InjectionType.HIT_MISS_FLIP:
-            return txn
-        elif injection_type == InjectionType.DIRTY_EVICTION_FLIP:
+        elif injection_type in (
+            InjectionType.HIT_MISS_FLIP,
+            InjectionType.DIRTY_EVICTION_FLIP,
+        ):
             return txn
         elif injection_type == InjectionType.WRITEBACK_DATA_CORRUPT:
             return replace(txn, data=txn.data ^ 0xAAAAAAAA)
@@ -341,8 +342,10 @@ class CrossValidationScoreboard:
             lines.append(f"### {injection_type.value}")
             lines.append("")
             lines.append(f"- Status: {'PASS' if success else 'FAIL'}")
-            lines.append(f"- Expected: Fault injection should cause ScoreboardMismatch")
-            lines.append(f"- Result: {'All tests detected mismatch' if success else 'Some tests failed'}")
+            lines.append("- Expected: Fault injection should cause ScoreboardMismatch")
+            lines.append(
+                f"- Result: {'All tests detected mismatch' if success else 'Some tests failed'}"
+            )
             lines.append("")
 
         lines.append("## Mathematical Proof of Independence")
@@ -386,15 +389,17 @@ class CrossValidationScoreboard:
         }
 
         for r in self.results:
-            result["results"].append({
-                "injection_type": r.injection_type.value,
-                "injected_in_model": r.injected_in_model,
-                "detected_by_oracle": r.detected_by_oracle,
-                "scoreboard_mismatch": r.scoreboard_mismatch,
-                "expected_discrepancy": r.expected_discrepancy,
-                "actual_discrepancy": r.actual_discrepancy,
-                "success": r.success,
-            })
+            result["results"].append(
+                {
+                    "injection_type": r.injection_type.value,
+                    "injected_in_model": r.injected_in_model,
+                    "detected_by_oracle": r.detected_by_oracle,
+                    "scoreboard_mismatch": r.scoreboard_mismatch,
+                    "expected_discrepancy": r.expected_discrepancy,
+                    "actual_discrepancy": r.actual_discrepancy,
+                    "success": r.success,
+                }
+            )
 
         return json.dumps(result, indent=2)
 

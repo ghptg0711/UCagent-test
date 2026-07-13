@@ -24,10 +24,10 @@ from __future__ import annotations
 
 import ast
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import ClassVar
 
 
 class FallacyType(str, Enum):
@@ -59,7 +59,7 @@ class FallacyFinding:
 
 
 class AIFallacyDetector:
-    MAGIC_NUMBERS = {64, 512, 4096, 8192}
+    MAGIC_NUMBERS: ClassVar[frozenset[int]] = frozenset({64, 512, 4096, 8192})
 
     def __init__(self) -> None:
         self.findings: list[FallacyFinding] = []
@@ -102,9 +102,11 @@ class AIFallacyDetector:
     def _check_circular_reasoning(self, node: ast.AST, file_path: Path, content: str) -> None:
         if isinstance(node, ast.Attribute):
             if isinstance(node.value, ast.Name):
-                if (
-                    node.value.id in ("dut", "DUT", "real_dut")
-                    and node.attr in ("access", "state", "internal", "signals")
+                if node.value.id in ("dut", "DUT", "real_dut") and node.attr in (
+                    "access",
+                    "state",
+                    "internal",
+                    "signals",
                 ):
                     self._add_finding(
                         fallacy_type=FallacyType.CIRCULAR_REASONING,
@@ -239,7 +241,7 @@ class AIFallacyDetector:
 
                     if isinstance(test, ast.Compare):
                         if isinstance(test.left, ast.Name):
-                            for op, comp in zip(test.ops, test.comparators):
+                            for op, comp in zip(test.ops, test.comparators, strict=True):
                                 if (
                                     isinstance(op, ast.IsNot)
                                     and isinstance(comp, ast.Constant)
@@ -257,9 +259,9 @@ class AIFallacyDetector:
                                     )
 
                         elif isinstance(test.left, ast.Call):
-                            if (
-                                isinstance(test.left.func, ast.Name)
-                                and test.left.func.id in ("is_not_none", "is_not_None")
+                            if isinstance(test.left.func, ast.Name) and test.left.func.id in (
+                                "is_not_none",
+                                "is_not_None",
                             ):
                                 weak_count += 1
 
@@ -280,6 +282,7 @@ class AIFallacyDetector:
 
     def _find_parent(self, node: ast.AST) -> ast.AST | None:
         import inspect
+
         frame = inspect.currentframe()
         if frame and frame.f_back:
             local_vars = frame.f_back.f_locals
@@ -309,16 +312,18 @@ class AIFallacyDetector:
         snippet_lines = lines[start:end]
         code_snippet = "\n".join(snippet_lines)
 
-        self.findings.append(FallacyFinding(
-            fallacy_type=fallacy_type,
-            file_path=file_path,
-            line_number=line_number,
-            column_number=col_offset,
-            code_snippet=code_snippet.strip(),
-            severity=severity,
-            description=description,
-            suggestion=suggestion,
-        ))
+        self.findings.append(
+            FallacyFinding(
+                fallacy_type=fallacy_type,
+                file_path=file_path,
+                line_number=line_number,
+                column_number=col_offset,
+                code_snippet=code_snippet.strip(),
+                severity=severity,
+                description=description,
+                suggestion=suggestion,
+            )
+        )
 
     def write_report(self, output_path: str | Path) -> None:
         path = Path(output_path)
@@ -349,7 +354,9 @@ class AIFallacyDetector:
             lines.append("| --- | --- | --- | --- |")
             for f in findings:
                 file_name = Path(f.file_path).name
-                lines.append(f"| {file_name}:{f.line_number} | {f.line_number} | {f.severity.value} | {f.description} |")
+                lines.append(
+                    f"| {file_name}:{f.line_number} | {f.line_number} | {f.severity.value} | {f.description} |"
+                )
             lines.append("")
 
         high_count = sum(1 for f in self.findings if f.severity == Severity.HIGH)
@@ -389,16 +396,18 @@ class AIFallacyDetector:
 
         for finding in self.findings:
             result["by_severity"][finding.severity.value] += 1
-            result["findings"].append({
-                "fallacy_type": finding.fallacy_type.value,
-                "file_path": finding.file_path,
-                "line_number": finding.line_number,
-                "column_number": finding.column_number,
-                "code_snippet": finding.code_snippet,
-                "severity": finding.severity.value,
-                "description": finding.description,
-                "suggestion": finding.suggestion,
-            })
+            result["findings"].append(
+                {
+                    "fallacy_type": finding.fallacy_type.value,
+                    "file_path": finding.file_path,
+                    "line_number": finding.line_number,
+                    "column_number": finding.column_number,
+                    "code_snippet": finding.code_snippet,
+                    "severity": finding.severity.value,
+                    "description": finding.description,
+                    "suggestion": finding.suggestion,
+                }
+            )
 
         return json.dumps(result, indent=2)
 

@@ -525,8 +525,12 @@ class TestMultiSetEvictionConsistency:
         set_0_tags = [0, 4, 8]
         set_2_tags = [1, 5, 9]
 
-        set_0_addrs = [tag * params.sets * params.line_bytes + 0 * params.line_bytes for tag in set_0_tags]
-        set_2_addrs = [tag * params.sets * params.line_bytes + 2 * params.line_bytes for tag in set_2_tags]
+        set_0_addrs = [
+            tag * params.sets * params.line_bytes + 0 * params.line_bytes for tag in set_0_tags
+        ]
+        set_2_addrs = [
+            tag * params.sets * params.line_bytes + 2 * params.line_bytes for tag in set_2_tags
+        ]
 
         for i, addr in enumerate(set_0_addrs[:2]):
             ref.access(CacheTxn(CacheOp.WRITE, addr, 4, data=100 + i, mask=0xF, txn_id=i))

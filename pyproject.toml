@@ -46,6 +46,7 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]
+"src/cache_vip/fallacy_detector.py" = ["SIM102"]
 
 [tool.ruff.format]
 quote-style = "double"

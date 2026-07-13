@@ -105,8 +105,14 @@ class Coverage:
         self.bins["latency.long" if latency >= 8 else "latency.short"] += 1
 
         self._sample_cross_bins(
-            txn, hit, evicted_dirty, evicted_clean, latency, mask_type,
-            replacement_policy, write_allocate
+            txn,
+            hit,
+            evicted_dirty,
+            evicted_clean,
+            latency,
+            mask_type,
+            replacement_policy,
+            write_allocate,
         )
 
     def _sample_cross_bins(

@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from .coverage import Coverage
-from .reference_model import ReferenceCache
 from .scoreboard import Scoreboard
 from .transactions import CacheResponse, CacheTxn
 
@@ -37,9 +36,7 @@ class DUTRegressionRunner:
         if latency is None:
             end_cycle = getattr(self.adapter, "cycle_count", None)
             latency = (
-                end_cycle - start_cycle
-                if start_cycle is not None and end_cycle is not None
-                else 0
+                end_cycle - start_cycle if start_cycle is not None and end_cycle is not None else 0
             )
 
         params = self.scoreboard.reference.params

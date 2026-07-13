@@ -17,9 +17,7 @@ def test_write_core_reports(tmp_path) -> None:
 
 
 def test_format_enhanced_report_includes_dut_and_fault_sections() -> None:
-    summary = run_enhanced_regression(
-        core_seeds=(1,), dut_seeds=(2,), core_count=10, dut_count=10
-    )
+    summary = run_enhanced_regression(core_seeds=(1,), dut_seeds=(2,), core_count=10, dut_count=10)
 
     markdown = format_markdown(summary)
 

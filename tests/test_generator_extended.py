@@ -28,7 +28,7 @@ def test_implication_stream_obeys_size_alignment_and_mask_constraints() -> None:
 
 def test_iter_seeded_streams_is_reproducible_and_distinct() -> None:
     streams = list(iter_seeded_streams((1, 2), 5))
-    repeated = list(iter_seeded_streams((1,), 5))[0]
+    repeated = next(iter(iter_seeded_streams((1,), 5)))
 
     assert streams[0] == repeated
     assert streams[0] != streams[1]

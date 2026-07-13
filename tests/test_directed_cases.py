@@ -362,8 +362,6 @@ class TestMemoryAgent:
         # This should be a miss (was evicted), but the data should come from memory
         assert not resp2.hit or resp2.evicted, "Addr 0x00 should have been evicted"
 
-
-
     def test_write_miss_data_merge_bug012(self):
         """BUG-012: Verify write-miss correctly merges CPU data with fill line.
 
@@ -388,9 +386,7 @@ class TestMemoryAgent:
         )
         assert not write_resp.hit
 
-        read_resp = ref.access(
-            CacheTxn(CacheOp.READ, addr=write_addr, size=8, txn_id=2)
-        )
+        read_resp = ref.access(CacheTxn(CacheOp.READ, addr=write_addr, size=8, txn_id=2))
         assert read_resp.hit
         assert read_resp.data == write_data
 
