@@ -53,8 +53,12 @@ if [[ "${EMULATE_REAL_DUT_CPU:-0}" == "1" ]]; then
     "${PYTHON_BIN}" -m pytest tests -v \
         --ignore=tests/test_real_dut_smoke.py \
         --cov=cache_vip --cov-report=term-missing
-    qemu-x86_64 -cpu max "${DUT_PYTHON_BIN}" -m pytest \
-        tests/test_real_dut_smoke.py -v
+    if ! qemu-x86_64 -cpu max -d in_asm -D qemu-real-dut.log \
+        "${DUT_PYTHON_BIN}" -m pytest tests/test_real_dut_smoke.py -v; then
+        echo "QEMU failed; final translated instruction blocks:" >&2
+        tail -120 qemu-real-dut.log >&2
+        exit 1
+    fi
 else
     "${PYTHON_BIN}" -m pytest tests -v --cov=cache_vip --cov-report=term-missing
 fi
