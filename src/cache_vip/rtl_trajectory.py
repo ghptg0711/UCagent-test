@@ -132,10 +132,16 @@ class RtlStateTrajectoryExtractor:
 
         with open(path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([
-                "cycle", "current_state", "next_state",
-                "triggering_signal", "signal_value", "additional_info"
-            ])
+            writer.writerow(
+                [
+                    "cycle",
+                    "current_state",
+                    "next_state",
+                    "triggering_signal",
+                    "signal_value",
+                    "additional_info",
+                ]
+            )
             for t in self.trajectory:
                 writer.writerow([
                     t.cycle,
@@ -235,8 +241,16 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Extract RTL state trajectory from FST waveform")
     parser.add_argument("--fst", help="Path to FST file (optional)")
-    parser.add_argument("--output", default="reports/rtl_state_trajectory.csv", help="Output CSV path")
-    parser.add_argument("--report", default="reports/rtl_state_trajectory.md", help="Output report path")
+    parser.add_argument(
+        "--output",
+        default="reports/rtl_state_trajectory.csv",
+        help="Output CSV path",
+    )
+    parser.add_argument(
+        "--report",
+        default="reports/rtl_state_trajectory.md",
+        help="Output report path",
+    )
     args = parser.parse_args()
 
     extractor = RtlStateTrajectoryExtractor()

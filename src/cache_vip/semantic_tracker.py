@@ -320,23 +320,38 @@ class SemanticRefactoringTracker:
         for module, metrics in self.module_metrics.items():
             if metrics.total_modifications > 0:
                 metrics.average_entropy = metrics.total_entropy / metrics.total_modifications
-                metrics.architecture_ratio = metrics.architecture_level / metrics.total_modifications
+                metrics.architecture_ratio = (
+                    metrics.architecture_level / metrics.total_modifications
+                )
 
     def _generate_summary(self) -> dict[str, Any]:
         total_events = len(self.refactoring_events)
         total_entropy = sum(e.entropy_score for e in self.refactoring_events)
-        arch_events = sum(1 for e in self.refactoring_events if e.modification_level == ModificationLevel.ARCHITECTURE)
-        impl_events = sum(1 for e in self.refactoring_events if e.modification_level == ModificationLevel.IMPLEMENTATION)
-        syntax_events = sum(1 for e in self.refactoring_events if e.modification_level == ModificationLevel.SYNTAX)
+        arch_events = sum(
+            1 for e in self.refactoring_events
+            if e.modification_level == ModificationLevel.ARCHITECTURE
+        )
+        impl_events = sum(
+            1 for e in self.refactoring_events
+            if e.modification_level == ModificationLevel.IMPLEMENTATION
+        )
+        syntax_events = sum(
+            1 for e in self.refactoring_events
+            if e.modification_level == ModificationLevel.SYNTAX
+        )
 
         summary = {
             "total_refactoring_events": total_events,
             "total_entropy_score": round(total_entropy, 2),
-            "average_entropy_per_event": round(total_entropy / total_events, 2) if total_events > 0 else 0,
+            "average_entropy_per_event": (
+                round(total_entropy / total_events, 2) if total_events > 0 else 0
+            ),
             "architecture_level_events": arch_events,
             "implementation_level_events": impl_events,
             "syntax_level_events": syntax_events,
-            "architecture_ratio": round(arch_events / total_events * 100, 1) if total_events > 0 else 0,
+            "architecture_ratio": (
+                round(arch_events / total_events * 100, 1) if total_events > 0 else 0
+            ),
             "module_metrics": {},
             "refactoring_events": [],
         }
@@ -424,8 +439,16 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Analyze semantic refactoring metrics")
-    parser.add_argument("--output", default="reports/ai_human_collaboration_metrics.json", help="Output JSON path")
-    parser.add_argument("--report", default="reports/ai_human_collaboration_report.md", help="Output report path")
+    parser.add_argument(
+        "--output",
+        default="reports/ai_human_collaboration_metrics.json",
+        help="Output JSON path",
+    )
+    parser.add_argument(
+        "--report",
+        default="reports/ai_human_collaboration_report.md",
+        help="Output report path",
+    )
     args = parser.parse_args()
 
     tracker = SemanticRefactoringTracker()

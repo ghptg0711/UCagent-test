@@ -524,7 +524,11 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Analyze coverage holes and attribute root causes")
     parser.add_argument("--input", required=True, help="Path to coverage summary JSON")
-    parser.add_argument("--output", default="reports/coverage_holes_attribution.md", help="Output report path")
+    parser.add_argument(
+        "--output",
+        default="reports/coverage_holes_attribution.md",
+        help="Output report path",
+    )
     args = parser.parse_args()
 
     with open(args.input, "r") as f:

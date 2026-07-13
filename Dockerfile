@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 
-FROM python:3.10-slim-bookworm AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 LABEL maintainer="UCagent Team"
 LABEL description="NutShell Cache Verification Environment - Builder Stage"
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install --upgrade pip setuptools wheel && \
     python -m pip install --no-cache-dir -e . -r requirements-dev.txt
 
-FROM python:3.10-slim-bookworm AS runtime
+FROM python:3.12-slim-bookworm AS runtime
 
 LABEL maintainer="UCagent Team"
 LABEL description="NutShell Cache Verification Environment - Runtime Stage"
@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     verilator make \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
+COPY --from=builder /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 COPY . /workspace/

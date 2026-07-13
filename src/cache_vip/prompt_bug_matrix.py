@@ -326,7 +326,9 @@ class PromptBugMatrix:
         lines.append("| --- | --- | --- | --- | --- |")
         for p in self.prompt_iterations:
             bugs = ", ".join(p.bugs_detected) if p.bugs_detected else "-"
-            key_changes = p.key_changes[0][:50] + "..." if len(p.key_changes[0]) > 50 else p.key_changes[0]
+            key_changes = (
+                p.key_changes[0][:50] + "..." if len(p.key_changes[0]) > 50 else p.key_changes[0]
+            )
             lines.append(f"| {p.version} | {p.date} | {key_changes} | {p.impact_score}/100 | {bugs} |")
         lines.append("")
 
@@ -466,8 +468,16 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Generate Prompt-to-Bug Traceability Matrix")
-    parser.add_argument("--output", default="reports/prompt_to_bug_matrix.md", help="Output report path")
-    parser.add_argument("--json", default="reports/prompt_to_bug_matrix.json", help="Output JSON path")
+    parser.add_argument(
+        "--output",
+        default="reports/prompt_to_bug_matrix.md",
+        help="Output report path",
+    )
+    parser.add_argument(
+        "--json",
+        default="reports/prompt_to_bug_matrix.json",
+        help="Output JSON path",
+    )
     args = parser.parse_args()
 
     matrix = PromptBugMatrix()

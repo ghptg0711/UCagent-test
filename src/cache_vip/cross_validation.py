@@ -79,9 +79,7 @@ class AlternativeReferenceModel:
         self.write_allocate = params.write_allocate
         self.replacement = params.replacement
 
-        self.tag_store: list[list[int]] = [
-            [-1 for _ in range(self.ways)] for _ in range(self.sets)
-        ]
+        self.tag_store: list[list[int]] = [[-1 for _ in range(self.ways)] for _ in range(self.sets)]
         self.data_store: list[list[bytes]] = [
             [bytes(self.line_bytes) for _ in range(self.ways)] for _ in range(self.sets)
         ]
@@ -89,9 +87,7 @@ class AlternativeReferenceModel:
             [False for _ in range(self.ways)] for _ in range(self.sets)
         ]
 
-        self.lru_count: list[list[int]] = [
-            [0 for _ in range(self.ways)] for _ in range(self.sets)
-        ]
+        self.lru_count: list[list[int]] = [[0 for _ in range(self.ways)] for _ in range(self.sets)]
         self.lru_tick: list[int] = [0 for _ in range(self.sets)]
 
     def access(self, txn: CacheTxn) -> CacheResponse:
@@ -111,7 +107,7 @@ class AlternativeReferenceModel:
                 data = self.data_store[set_idx][hit_way][offset : offset + txn.size]
                 return CacheResponse(
                     txn_id=txn.txn_id,
-                    data=int.from_bytes(data, 'little'),
+                    data=int.from_bytes(data, "little"),
                     hit=True,
                     evicted_dirty=False,
                     writeback_addr=None,
@@ -119,7 +115,7 @@ class AlternativeReferenceModel:
                 )
             else:
                 new_data = bytearray(self.data_store[set_idx][hit_way])
-                data_bytes = txn.data.to_bytes(txn.size, 'little')
+                data_bytes = txn.data.to_bytes(txn.size, "little")
                 new_data[offset : offset + txn.size] = data_bytes
                 self.data_store[set_idx][hit_way] = bytes(new_data)
                 self.dirty_store[set_idx][hit_way] = True
@@ -153,14 +149,18 @@ class AlternativeReferenceModel:
 
         if txn.op == CacheOp.WRITE and self.write_allocate:
             new_data = bytearray(fill_data)
-            data_bytes = txn.data.to_bytes(txn.size, 'little')
+            data_bytes = txn.data.to_bytes(txn.size, "little")
             new_data[offset : offset + txn.size] = data_bytes
             self.data_store[set_idx][victim_way] = bytes(new_data)
             self.dirty_store[set_idx][victim_way] = True
 
         return CacheResponse(
             txn_id=txn.txn_id,
-            data=0 if txn.op == CacheOp.WRITE else int.from_bytes(fill_data[offset : offset + txn.size], 'little'),
+            data=(
+                0
+                if txn.op == CacheOp.WRITE
+                else int.from_bytes(fill_data[offset : offset + txn.size], "little")
+            ),
             hit=False,
             evicted_dirty=evicted_dirty,
             writeback_addr=writeback_addr,
@@ -403,8 +403,16 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Run dual-blind Scoreboard cross-validation")
-    parser.add_argument("--output", default="reports/scoreboard_independence_proof.md", help="Output report path")
-    parser.add_argument("--json", default="reports/scoreboard_independence_proof.json", help="Output JSON path")
+    parser.add_argument(
+        "--output",
+        default="reports/scoreboard_independence_proof.md",
+        help="Output report path",
+    )
+    parser.add_argument(
+        "--json",
+        default="reports/scoreboard_independence_proof.json",
+        help="Output JSON path",
+    )
     args = parser.parse_args()
 
     validator = CrossValidationScoreboard()

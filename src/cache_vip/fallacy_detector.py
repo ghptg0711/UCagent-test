@@ -102,7 +102,10 @@ class AIFallacyDetector:
     def _check_circular_reasoning(self, node: ast.AST, file_path: Path, content: str) -> None:
         if isinstance(node, ast.Attribute):
             if isinstance(node.value, ast.Name):
-                if node.value.id in ("dut", "DUT", "real_dut") and node.attr in ("access", "state", "internal", "signals"):
+                if (
+                    node.value.id in ("dut", "DUT", "real_dut")
+                    and node.attr in ("access", "state", "internal", "signals")
+                ):
                     self._add_finding(
                         fallacy_type=FallacyType.CIRCULAR_REASONING,
                         file_path=str(file_path),
@@ -150,7 +153,12 @@ class AIFallacyDetector:
             if isinstance(node.func, ast.Attribute):
                 if node.func.attr in ("write", "read"):
                     if isinstance(node.func.value, ast.Name):
-                        if node.func.value.id in ("reset", "clock", "reset_wrapper", "clock_wrapper"):
+                        if node.func.value.id in (
+                            "reset",
+                            "clock",
+                            "reset_wrapper",
+                            "clock_wrapper",
+                        ):
                             parent = self._find_parent(node)
                             if not isinstance(parent, ast.Await):
                                 self._add_finding(
@@ -232,7 +240,11 @@ class AIFallacyDetector:
                     if isinstance(test, ast.Compare):
                         if isinstance(test.left, ast.Name):
                             for op, comp in zip(test.ops, test.comparators):
-                                if isinstance(op, ast.IsNot) and isinstance(comp, ast.Constant) and comp.value is None:
+                                if (
+                                    isinstance(op, ast.IsNot)
+                                    and isinstance(comp, ast.Constant)
+                                    and comp.value is None
+                                ):
                                     weak_count += 1
                                     self._add_finding(
                                         fallacy_type=FallacyType.WEAK_ASSERTION,
@@ -245,7 +257,10 @@ class AIFallacyDetector:
                                     )
 
                         elif isinstance(test.left, ast.Call):
-                            if isinstance(test.left.func, ast.Name) and test.left.func.id in ("is_not_none", "is_not_None"):
+                            if (
+                                isinstance(test.left.func, ast.Name)
+                                and test.left.func.id in ("is_not_none", "is_not_None")
+                            ):
                                 weak_count += 1
 
                     elif isinstance(test, ast.Name):
@@ -392,8 +407,16 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Run AI Fallacy Detector")
-    parser.add_argument("--output", default="reports/ai_fallacy_report.md", help="Output report path")
-    parser.add_argument("--json", default="reports/ai_fallacy_report.json", help="Output JSON path")
+    parser.add_argument(
+        "--output",
+        default="reports/ai_fallacy_report.md",
+        help="Output report path",
+    )
+    parser.add_argument(
+        "--json",
+        default="reports/ai_fallacy_report.json",
+        help="Output JSON path",
+    )
     args = parser.parse_args()
 
     detector = AIFallacyDetector()
