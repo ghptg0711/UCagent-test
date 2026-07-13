@@ -40,6 +40,9 @@ PYTHONPATH=src python -m cache_vip.regression
 
 # WSL2 全量验证：预编译 DUT 需要 Python 3.14
 bash run_wsl_tests.sh
+
+# 异构 x86 主机：用 QEMU CPU 模型运行仓库中的真实 DUT
+EMULATE_REAL_DUT_CPU=1 bash run_wsl_tests.sh
 ```
 
 `run_wsl_tests.sh` 默认使用清华 PyPI 镜像；可通过 `PIP_INDEX_URL` 覆盖。xspcomm
@@ -48,6 +51,9 @@ bash run_wsl_tests.sh
 安装脚本会使用当前 Ubuntu APT 源补齐依赖。
 仓库中 `rtl/generated_real/_UT_RealNutShellCache.so` 使用 Python 3.13+
 C API，并由 Python 3.14 环境生成；真实 DUT 验证请使用 Python 3.14。
+该历史证据二进制还使用了 Picker 模板原有的 `-march=native`，不能保证跨 CPU
+直接运行。CI 因此设置 `EMULATE_REAL_DUT_CPU=1`，通过 QEMU 的通用 x86 CPU
+模型执行同一个真实 DUT；新的 DUT 构建则默认使用通用 x86-64 指令集。
 
 ## Project Structure
 

@@ -45,11 +45,18 @@ jobs:
           python-version: '3.14'
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user
           python -m pip install --upgrade pip
           python -m pip install -e . -r requirements-dev.txt
       - name: Check repository integrity
         run: |
           python tools/check_repo_health.py
       - name: Run real DUT tests
+        env:
+          # The checked-in real DUT was built by the original Picker template
+          # with -march=native. Use QEMU's broad x86 CPU model so the exact DUT
+          # remains under test on GitHub runners with a different host CPU.
+          EMULATE_REAL_DUT_CPU: '1'
         run: |
           bash run_wsl_tests.sh

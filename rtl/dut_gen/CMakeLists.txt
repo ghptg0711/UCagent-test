@@ -13,7 +13,13 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # enable coroutines
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED)
-set(CFLAGS "$ENV{CFLAGS} -ftls-model=global-dynamic -O3 -march=native")
+# Generated DUT libraries are checked in and run on machines other than the
+# generator.  Do not let the build host leak its CPU feature set into them.
+set(DUT_ARCH_FLAGS "$ENV{DUT_ARCH_FLAGS}")
+if("${DUT_ARCH_FLAGS}" STREQUAL "")
+	set(DUT_ARCH_FLAGS "-march=x86-64 -mtune=generic")
+endif()
+set(CFLAGS "$ENV{CFLAGS} -ftls-model=global-dynamic -O3 ${DUT_ARCH_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines ${CFLAGS}")
 set(SIMULATOR_FLAGS "$ENV{SIMULATOR_FLAGS}")
 if(NOT "${SIMULATOR_FLAGS}" STREQUAL "")
