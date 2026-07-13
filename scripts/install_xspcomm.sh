@@ -11,6 +11,8 @@ readonly CACHE_ROOT="${XSPCOMM_CACHE_ROOT:-${HOME}/.cache/nutshell-cache-verific
 readonly SOURCE_DIR="${CACHE_ROOT}/xcomm-${XCOMM_SHORT_COMMIT}"
 readonly PYTHON_BIN="${PYTHON_BIN:-python3}"
 readonly BUILD_LOG="${CACHE_ROOT}/xcomm-${XCOMM_SHORT_COMMIT}.build.log"
+PYTHON_ROOT="$("${PYTHON_BIN}" -c 'import sys; print(sys.prefix)')"
+readonly PYTHON_ROOT
 
 install_system_dependencies() {
     local packages=(build-essential cmake swig python3-dev git)
@@ -67,7 +69,9 @@ if ! {
     BUILD_XSPCOMM_SWIG=python cmake \
         -S "${SOURCE_DIR}" \
         -B "${SOURCE_DIR}/build" \
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=Release \
+        -DPython3_EXECUTABLE="${PYTHON_BIN}" \
+        -DPython3_ROOT_DIR="${PYTHON_ROOT}"
     cmake --build "${SOURCE_DIR}/build" --parallel "${XSPCOMM_BUILD_JOBS:-2}"
 } >"${BUILD_LOG}" 2>&1; then
     echo "ERROR: xspcomm build failed; last 80 log lines:" >&2

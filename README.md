@@ -38,7 +38,7 @@ python -m pytest tests/ -v --asyncio-mode=auto
 # 运行核心回归
 PYTHONPATH=src python -m cache_vip.regression
 
-# WSL2 全量验证：自动从 GitLink 国内镜像获取并编译匹配当前 Python ABI 的 xspcomm
+# WSL2 全量验证：预编译 DUT 需要 Python 3.14
 bash run_wsl_tests.sh
 ```
 
@@ -46,6 +46,8 @@ bash run_wsl_tests.sh
 源码固定为官方提交 `23ba5c4`，优先从 GitLink 国内镜像获取，构建结果缓存在
 `~/.cache/nutshell-cache-verification/`。缺少 CMake、SWIG 或 Python 开发头文件时，
 安装脚本会使用当前 Ubuntu APT 源补齐依赖。
+仓库中 `rtl/generated_real/_UT_RealNutShellCache.so` 使用 Python 3.13+
+C API，并由 Python 3.14 环境生成；真实 DUT 验证请使用 Python 3.14。
 
 ## Project Structure
 
@@ -94,7 +96,7 @@ bash run_wsl_tests.sh
 项目通过 GitHub Actions 持续集成（见 `.github/workflows/verification.yml`），包含两个作业：
 
 - **unit-tests**：在标准 Ubuntu Runner 上运行单元测试与核心回归，不依赖 WSL2。
-- **real-dut-tests**：运行真实 DUT 冒烟测试，需要 Picker/Verilator 构建产物。
+- **real-dut-tests**：在 Ubuntu 24.04 + Python 3.14 上运行真实 DUT 冒烟测试，需要 Picker/Verilator 构建产物。
 
 ## License
 
