@@ -59,11 +59,15 @@ class ScriptedMemoryAgent:
             raise ValueError("latency must be non-negative")
 
         if request.write:
-            self.memory.write(request.addr, request.size, request.data, request.mask or ((1 << request.size) - 1))
+            self.memory.write(
+                request.addr, request.size, request.data, request.mask or ((1 << request.size) - 1)
+            )
             data = 0
         else:
             data = self.memory.read(request.addr, request.size)
-        self._pending.append(MemoryResponse(request.txn_id, data=data, ready_cycle=self.cycle + response_latency))
+        self._pending.append(
+            MemoryResponse(request.txn_id, data=data, ready_cycle=self.cycle + response_latency)
+        )
         return True
 
     def tick(self) -> list[MemoryResponse]:
@@ -120,15 +124,15 @@ class ToffeeMemoryAgent:
             return None
 
         valid_sig = getattr(self.dut, mem_req_valid_name)
-        ready_sig = getattr(self.dut, getattr(self.signal_map, "mem_req_ready"))
+        ready_sig = getattr(self.dut, self.signal_map.mem_req_ready)
         valid = await valid_sig.read()
         if not valid:
             return None
 
-        addr_sig = getattr(self.dut, getattr(self.signal_map, "mem_req_addr"))
-        write_sig = getattr(self.dut, getattr(self.signal_map, "mem_req_write"))
-        wdata_sig = getattr(self.dut, getattr(self.signal_map, "mem_req_wdata"))
-        wmask_sig = getattr(self.dut, getattr(self.signal_map, "mem_req_wmask"))
+        addr_sig = getattr(self.dut, self.signal_map.mem_req_addr)
+        write_sig = getattr(self.dut, self.signal_map.mem_req_write)
+        wdata_sig = getattr(self.dut, self.signal_map.mem_req_wdata)
+        wmask_sig = getattr(self.dut, self.signal_map.mem_req_wmask)
 
         addr = await addr_sig.read()
         write = await write_sig.read()
@@ -138,7 +142,9 @@ class ToffeeMemoryAgent:
         await ready_sig.write(1)
         await self.dut.wait_cycles(1)
 
-        return MemoryRequest(addr=addr, size=self.line_bytes, write=bool(write), data=data, mask=mask)
+        return MemoryRequest(
+            addr=addr, size=self.line_bytes, write=bool(write), data=data, mask=mask
+        )
 
     async def drive_memory_response(self, response: MemoryResponse) -> None:
         """Drive memory response signals to the DUT (Memory -> DUT).
@@ -150,8 +156,8 @@ class ToffeeMemoryAgent:
             return
 
         valid_sig = getattr(self.dut, mem_resp_valid_name)
-        rdata_sig = getattr(self.dut, getattr(self.signal_map, "mem_resp_rdata"))
-        ready_sig = getattr(self.dut, getattr(self.signal_map, "mem_resp_ready"))
+        rdata_sig = getattr(self.dut, self.signal_map.mem_resp_rdata)
+        ready_sig = getattr(self.dut, self.signal_map.mem_resp_ready)
 
         await rdata_sig.write(response.data)
         await valid_sig.write(1)

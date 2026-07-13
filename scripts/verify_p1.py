@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 """Quick verification of 5-fault detection and OOO scoreboard."""
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cache_vip.regression import _run_fault_detection
-from cache_vip.reference_model import CacheParams
 from cache_vip.ooo_scoreboard import OooScoreboard
+from cache_vip.reference_model import CacheParams
+from cache_vip.regression import _run_fault_detection
 from cache_vip.transactions import CacheOp, CacheResponse, CacheTxn
 
 # Test 5 fault detection modes

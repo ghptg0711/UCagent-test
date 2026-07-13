@@ -71,7 +71,9 @@ class ReferenceCache:
             for _ in range(self.params.sets)
         ]
         self.lru: list[list[int]] = [list(range(self.params.ways)) for _ in range(self.params.sets)]
-        self.fifo: list[list[int]] = [list(range(self.params.ways)) for _ in range(self.params.sets)]
+        self.fifo: list[list[int]] = [
+            list(range(self.params.ways)) for _ in range(self.params.sets)
+        ]
         self._rng = _random.Random(42)
         self.last_writeback: tuple[int, bytes] | None = None
 
@@ -104,7 +106,9 @@ class ReferenceCache:
             if txn.op is CacheOp.WRITE and not self.params.write_allocate:
                 self.memory.write(txn.addr, txn.size, txn.data, txn.mask or ((1 << txn.size) - 1))
                 return CacheResponse(txn_id=txn.txn_id, data=0, hit=False)
-            way, evicted, evicted_dirty, writeback_addr, writeback_data = self._allocate_line(set_idx, tag, line_base)
+            way, evicted, evicted_dirty, writeback_addr, writeback_data = self._allocate_line(
+                set_idx, tag, line_base
+            )
 
         line = self.lines[set_idx][way]
         offset = txn.addr - line_base
@@ -149,7 +153,9 @@ class ReferenceCache:
             return self._rng.randrange(self.params.ways)
         return self.lru[set_idx][-1]
 
-    def _allocate_line(self, set_idx: int, tag: int, line_base: int) -> tuple[int, bool, bool, int | None, bytes | None]:
+    def _allocate_line(
+        self, set_idx: int, tag: int, line_base: int
+    ) -> tuple[int, bool, bool, int | None, bytes | None]:
         way = next((i for i, line in enumerate(self.lines[set_idx]) if not line.valid), None)
         evicted = False
         evicted_dirty = False

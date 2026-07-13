@@ -32,7 +32,9 @@ class XPinAsyncWrapper:
 
 
 class RealDUTWrapper:
-    def __init__(self, dut_module_path: str = "rtl.generated_real", coverage_filename: str | None = None) -> None:
+    def __init__(
+        self, dut_module_path: str = "rtl.generated_real", coverage_filename: str | None = None
+    ) -> None:
         self._dut_module_path = dut_module_path
         self._coverage_filename = coverage_filename
         self.dut = None
@@ -43,29 +45,30 @@ class RealDUTWrapper:
         import importlib
         import os
         import sys
+
         cwd = os.getcwd()
         if cwd not in sys.path:
             sys.path.insert(0, cwd)
         generated = importlib.import_module(self._dut_module_path)
         dut_cls = getattr(generated, "DUTRealNutShellCache", None)
         if dut_cls is None:
-            dut_cls = getattr(generated, "DUTNutShellCache")
+            dut_cls = generated.DUTNutShellCache
         kwargs = {}
         if self._coverage_filename:
             kwargs["coverage_filename"] = self._coverage_filename
         self.dut = dut_cls(**kwargs)
 
         for attr_name in dir(self.dut):
-            if not attr_name.startswith('_'):
+            if not attr_name.startswith("_"):
                 attr = getattr(self.dut, attr_name)
-                if hasattr(attr, 'value'):
+                if hasattr(attr, "value"):
                     wrapper = XPinAsyncWrapper(attr, self.dut.event, self.dut)
                     self.signal_wrappers[attr_name] = wrapper
 
         await self._reset()
 
     async def _reset(self, cycles: int = 10) -> None:
-        reset_wrapper = self.signal_wrappers.get('reset')
+        reset_wrapper = self.signal_wrappers.get("reset")
         if reset_wrapper:
             await reset_wrapper.write(1)
             await self.wait_cycles(cycles)
@@ -86,7 +89,12 @@ class RealDUTWrapper:
 
 
 class RealCacheAdapter:
-    def __init__(self, dut_module_path: str = "rtl.generated_real", coverage_filename: str | None = None, trace_file: str | None = None) -> None:
+    def __init__(
+        self,
+        dut_module_path: str = "rtl.generated_real",
+        coverage_filename: str | None = None,
+        trace_file: str | None = None,
+    ) -> None:
         self.dut_wrapper = RealDUTWrapper(dut_module_path, coverage_filename=coverage_filename)
         self.signal_map = None
         self._pending_txns: dict[int, CacheTxn] = {}
@@ -99,7 +107,7 @@ class RealCacheAdapter:
     async def init(self, signal_map_path: str = "configs/signal_map_real.yaml") -> None:
         self.signal_map = load_signal_map(signal_map_path)
         await self.dut_wrapper.init(self.signal_map)
-        if self._trace_file and hasattr(self.dut_wrapper.dut, 'EnableTrace'):
+        if self._trace_file and hasattr(self.dut_wrapper.dut, "EnableTrace"):
             self.dut_wrapper.dut.EnableTrace(self._trace_file)
         await self._drive_idle_inputs()
 
@@ -269,7 +277,11 @@ class RealCacheAdapter:
 
         txn_id = next(iter(self._pending_txns.keys()), 0)
         txn = self._pending_txns.get(txn_id)
-        if txn and txn.op is CacheOp.READ and any((txn.addr & ~0x7) + i in self._memory for i in range(8)):
+        if (
+            txn
+            and txn.op is CacheOp.READ
+            and any((txn.addr & ~0x7) + i in self._memory for i in range(8))
+        ):
             rdata = self._load_word(txn.addr)
         if txn_id in self._pending_txns:
             del self._pending_txns[txn_id]
@@ -281,10 +293,7 @@ class RealCacheAdapter:
         return self._cycle_count
 
     def finish(self) -> None:
-        # Picker/xspcomm keeps process-global state; calling Finish() destroys
-        # the DUT instance and subsequent tests in the same process will segfault.
-        # Only flush coverage in dedicated coverage-generation scripts.
-        pass
+        """Leave shared Picker process state intact for subsequent tests."""
 
 
 _SHARED_ADAPTER: RealCacheAdapter | None = None
@@ -297,7 +306,9 @@ async def create_real_dut_adapter(
 ) -> RealCacheAdapter:
     global _SHARED_ADAPTER
     if _SHARED_ADAPTER is None:
-        _SHARED_ADAPTER = RealCacheAdapter(coverage_filename=coverage_filename, trace_file=trace_file)
+        _SHARED_ADAPTER = RealCacheAdapter(
+            coverage_filename=coverage_filename, trace_file=trace_file
+        )
         await _SHARED_ADAPTER.init(signal_map_path)
     else:
         await _SHARED_ADAPTER.reset()

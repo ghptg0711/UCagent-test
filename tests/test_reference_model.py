@@ -32,4 +32,3 @@ def test_dirty_eviction_writes_back_to_memory():
 
     assert response.evicted_dirty is True
     assert cache.memory.read(0x00, 8) == 0x1234
-

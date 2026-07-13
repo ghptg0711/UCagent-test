@@ -11,21 +11,24 @@ Tests more complex scenarios that combine multiple features:
 
 import pytest
 
-from cache_vip.generator import CacheGenerator
-from cache_vip.reference_model import CacheParams, ReplacementPolicy, ReferenceCache
-from cache_vip.scoreboard import Scoreboard, ScoreboardMismatch
 from cache_vip.coverage import Coverage
+from cache_vip.generator import CacheGenerator
+from cache_vip.reference_model import CacheParams, ReferenceCache, ReplacementPolicy
+from cache_vip.scoreboard import ScoreboardMismatch
 from cache_vip.transactions import CacheOp, CacheTxn
 
 
 class _Result:
     """Lightweight result container with coverage."""
+
     def __init__(self, ref: ReferenceCache) -> None:
         self.reference = ref
         self.coverage = Coverage(line_bytes=ref.params.line_bytes)
 
 
-def _run_txns(txns: list[CacheTxn], params: CacheParams | None = None, *, mark_same_set: bool = False) -> _Result:
+def _run_txns(
+    txns: list[CacheTxn], params: CacheParams | None = None, *, mark_same_set: bool = False
+) -> _Result:
     """Run transactions and verify functional correctness independently.
 
     Instead of comparing reference model to itself, verifies:
@@ -115,7 +118,9 @@ class TestFullCacheThrashing:
         txns.append(gen._make(CacheOp.READ, 4 * 64, 8))
 
         sb = _run_txns(txns, params, mark_same_set=True)
-        assert sb.coverage.bins["replacement.clean"] >= 1 or sb.coverage.bins["replacement.dirty"] >= 1
+        assert (
+            sb.coverage.bins["replacement.clean"] >= 1 or sb.coverage.bins["replacement.dirty"] >= 1
+        )
 
 
 class TestSequentialAccess:
@@ -271,7 +276,9 @@ class TestReplacementPressure:
             assert resp.hit is True
 
         new_addr = params.ways * 64
-        replace_resp = ref.access(CacheTxn(CacheOp.WRITE, new_addr, 8, data=0xBEEF, mask=0xFF, txn_id=400))
+        replace_resp = ref.access(
+            CacheTxn(CacheOp.WRITE, new_addr, 8, data=0xBEEF, mask=0xFF, txn_id=400)
+        )
         hot_resp = ref.access(CacheTxn(CacheOp.READ, hot_addr, 8, txn_id=401))
         new_resp = ref.access(CacheTxn(CacheOp.READ, new_addr, 8, txn_id=402))
 
@@ -291,7 +298,9 @@ class TestAlignmentStress:
         base = 0x50000
         txns: list[CacheTxn] = []
         for offset in range(0, 64, 8):
-            txns.append(gen._make(CacheOp.WRITE, base + offset, 8, data=offset * 0x11223344, mask=0xFF))
+            txns.append(
+                gen._make(CacheOp.WRITE, base + offset, 8, data=offset * 0x11223344, mask=0xFF)
+            )
 
         for offset in range(0, 64, 8):
             txns.append(gen._make(CacheOp.READ, base + offset, 8))
@@ -459,7 +468,7 @@ class TestCRVStability:
         txns2 = gen2.random_stream(100)
 
         assert len(txns1) == len(txns2)
-        for t1, t2 in zip(txns1, txns2):
+        for t1, t2 in zip(txns1, txns2, strict=True):
             assert t1 == t2
 
     def test_different_seeds_different_patterns(self):
@@ -472,7 +481,7 @@ class TestCRVStability:
         txns2 = gen2.random_stream(50)
 
         # Should have some differences
-        diffs = sum(1 for t1, t2 in zip(txns1, txns2) if t1 != t2)
+        diffs = sum(1 for t1, t2 in zip(txns1, txns2, strict=True) if t1 != t2)
         assert diffs > 0, "Different seeds should produce different sequences"
 
 

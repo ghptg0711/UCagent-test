@@ -11,8 +11,9 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
+from typing import ClassVar
 
-from .transactions import CacheOp, CacheTxn
+from .transactions import CacheTxn
 
 
 @dataclass
@@ -20,27 +21,29 @@ class Coverage:
     bins: Counter[str] = field(default_factory=Counter)
     line_bytes: int = 64
 
-    REQUIRED_BINS = {
-        "op.read",
-        "op.write",
-        "size.1",
-        "size.2",
-        "size.4",
-        "size.8",
-        "access.read_hit",
-        "access.read_miss",
-        "access.write_hit",
-        "access.write_miss",
-        "replacement.clean",
-        "replacement.dirty",
-        "mask.full",
-        "mask.single",
-        "mask.sparse",
-        "addr.same_set",
-        "addr.line_boundary",
-        "latency.short",
-        "latency.long",
-    }
+    REQUIRED_BINS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "op.read",
+            "op.write",
+            "size.1",
+            "size.2",
+            "size.4",
+            "size.8",
+            "access.read_hit",
+            "access.read_miss",
+            "access.write_hit",
+            "access.write_miss",
+            "replacement.clean",
+            "replacement.dirty",
+            "mask.full",
+            "mask.single",
+            "mask.sparse",
+            "addr.same_set",
+            "addr.line_boundary",
+            "latency.short",
+            "latency.long",
+        }
+    )
 
     def sample_access(
         self,

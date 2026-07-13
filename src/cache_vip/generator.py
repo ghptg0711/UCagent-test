@@ -9,8 +9,8 @@ rate, and uncached traffic without changing test code.
 from __future__ import annotations
 
 import random
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from .reference_model import CacheParams
 from .transactions import CacheOp, CacheTxn
@@ -78,11 +78,7 @@ class CacheGenerator:
         return txns
 
     def replacement_sequence_with_lru_check(self, set_idx: int = 0) -> list[CacheTxn]:
-        """同 set ways+2 tag 循环访问，检查 LRU 替换正确性。
-
-        写入 ways+1 个不同 tag 到同一 set，验证第 ways+2 个
-        写入会驱逐 LRU way（即最早访问的 tag 0）。
-        """
+        """Generate same-set pressure that exposes an incorrect LRU victim."""
         txns: list[CacheTxn] = []
         for tag in range(self.params.ways + 1):
             addr = self._addr_from_tag_set(tag, set_idx)
@@ -96,11 +92,7 @@ class CacheGenerator:
         return txns
 
     def partial_write_cross_offset(self, base_addr: int = 0x2000) -> list[CacheTxn]:
-        """partial write 跨多个 offset，验证 byte mask 正确性。
-
-        在同一 cache line 的不同 offset 执行 partial write，
-        最后读回整行验证数据完整性。
-        """
+        """Generate partial writes at several offsets followed by readback."""
         base = base_addr - (base_addr % self.params.line_bytes)
         txns: list[CacheTxn] = []
         # Write full 8 bytes at offset 0
@@ -117,10 +109,7 @@ class CacheGenerator:
         return txns
 
     def raw_dependency_sequence(self, base_addr: int = 0x3000) -> list[CacheTxn]:
-        """read-after-write、write-after-read、write-after-write 序列。
-
-        验证 RAW/WAR/WAW 依赖下的数据一致性。
-        """
+        """Generate RAW, WAR, and WAW dependencies for one cache line."""
         base = base_addr - (base_addr % self.params.line_bytes)
         txns: list[CacheTxn] = []
         # Write initial value
@@ -138,11 +127,7 @@ class CacheGenerator:
         return txns
 
     def line_boundary_all_sizes(self, base_addr: int = 0x3C00) -> list[CacheTxn]:
-        """line boundary 附近所有 size 的访问。
-
-        在 cache line 尾部边界附近执行不同 size 的读操作，
-        验证边界访问的正确性。
-        """
+        """Generate accesses of every supported size at a line boundary."""
         base = base_addr - (base_addr % self.params.line_bytes)
         line_end = base + self.params.line_bytes
         txns: list[CacheTxn] = []
@@ -160,17 +145,18 @@ class CacheGenerator:
         return txns
 
     def uncached_access_sequence(self, base_addr: int = 0x80000000) -> list[CacheTxn]:
-        """uncached/MMIO 地址区间访问。
-
-        验证 uncached 读写绕过 cache，直接访问 memory。
-        """
+        """Generate uncached reads and writes followed by a cached access."""
         txns: list[CacheTxn] = []
         # Uncached write
-        txns.append(self._make(CacheOp.WRITE, base_addr, 4, data=0xCAFEBABE, mask=0xF, uncached=True))
+        txns.append(
+            self._make(CacheOp.WRITE, base_addr, 4, data=0xCAFEBABE, mask=0xF, uncached=True)
+        )
         # Uncached read (should get written value)
         txns.append(self._make(CacheOp.READ, base_addr, 4, uncached=True))
         # Uncached write with partial mask
-        txns.append(self._make(CacheOp.WRITE, base_addr + 4, 2, data=0x1234, mask=0x3, uncached=True))
+        txns.append(
+            self._make(CacheOp.WRITE, base_addr + 4, 2, data=0x1234, mask=0x3, uncached=True)
+        )
         # Uncached read back
         txns.append(self._make(CacheOp.READ, base_addr + 4, 2, uncached=True))
         # Cached access to different address (should use cache)
@@ -179,11 +165,7 @@ class CacheGenerator:
         return txns
 
     def reset_state_clear(self, base_addr: int = 0x4000) -> list[CacheTxn]:
-        """reset 后状态清空验证。
-
-        写入数据后，期望 reset 清空 cache 状态，
-        后续读同一地址应为 miss（从 memory 读取）。
-        """
+        """Generate accesses used to verify cache state across a reset."""
         base = base_addr - (base_addr % self.params.line_bytes)
         txns: list[CacheTxn] = []
         # Write data
@@ -196,16 +178,10 @@ class CacheGenerator:
         txns.append(self._make(CacheOp.READ, base, 8))
         return txns
 
-    def weighted_stream(self, count: int, *, read_weight: float = 0.6, write_weight: float = 0.4) -> list[CacheTxn]:
-        """生成权重约束的随机流。
-
-        使用权重分布引导操作类型：
-        - read_weight: READ 操作的权重（默认 0.6）
-        - write_weight: WRITE 操作的权重（默认 0.4）
-
-        权重约束确保 read/write 比例可控，有利于触发 read-hit 场景。
-        地址集中在有限 set 范围以触发 replacement。
-        """
+    def weighted_stream(
+        self, count: int, *, read_weight: float = 0.6, write_weight: float = 0.4
+    ) -> list[CacheTxn]:
+        """Generate a weighted stream concentrated in a small set range."""
         txns: list[CacheTxn] = []
         for _ in range(count):
             op = self.random.choices(
@@ -233,26 +209,18 @@ class CacheGenerator:
         return txns
 
     def implication_stream(self, count: int, base_addr: int = 0x1000) -> list[CacheTxn]:
-        """生成蕴含约束的随机流。
-
-        蕴含关系建模：
-        - 如果地址对齐到 cache line 边界 (addr % line_bytes == 0)，则 size = 8（全行访问）
-        - 如果地址在 line 内部，则 size ∈ {1, 2, 4}（部分访问）
-        - 如果是 WRITE 且 size < 8，则 mask 必须与 size 对齐
-
-        这些蕴含约束覆盖了 alignment 和 size 的组合场景。
-        """
+        """Generate a stream whose size and mask follow address constraints."""
         txns: list[CacheTxn] = []
         for _ in range(count):
-            aligned = self.random.random() < 0.3  # 30% 概率对齐
+            aligned = self.random.random() < 0.3
 
             if aligned:
-                # 蕴含：对齐地址 -> size = 8
+                # Line-aligned accesses use the maximum transfer size.
                 set_idx = self.random.randint(0, self.params.sets - 1)
                 addr = base_addr + set_idx * self.params.line_bytes
                 size = 8
             else:
-                # 蕴含：非对齐地址 -> size ∈ {1, 2, 4}
+                # Interior accesses use a sub-line transfer size.
                 set_idx = self.random.randint(0, self.params.sets - 1)
                 size = self.random.choice([1, 2, 4])
                 offset = self.random.randint(1, self.params.line_bytes - size)
@@ -262,9 +230,9 @@ class CacheGenerator:
 
             if op is CacheOp.WRITE:
                 data = self.random.getrandbits(size * 8)
-                # 蕴含：size 决定 mask 的有效范围
+                # The transfer size bounds the valid byte-enable mask.
                 mask = (1 << size) - 1
-                # 随机清除部分 bit 产生 sparse mask
+                # Occasionally clear one bit to exercise sparse masks.
                 if self.random.random() < 0.3:
                     clear_bit = self.random.randint(0, size - 1)
                     mask &= ~(1 << clear_bit)
@@ -315,12 +283,22 @@ class CacheGenerator:
         uncached: bool = False,
     ) -> CacheTxn:
         self._txn_id += 1
-        return CacheTxn(op=op, addr=addr, size=size, data=data, mask=mask, txn_id=self._txn_id, uncached=uncached)
+        return CacheTxn(
+            op=op,
+            addr=addr,
+            size=size,
+            data=data,
+            mask=mask,
+            txn_id=self._txn_id,
+            uncached=uncached,
+        )
 
     def _addr_from_tag_set(self, tag: int, set_idx: int) -> int:
         return (tag * self.params.sets + set_idx) * self.params.line_bytes
 
 
-def iter_seeded_streams(seeds: Iterable[int], count: int, params: CacheParams | None = None) -> Iterable[list[CacheTxn]]:
+def iter_seeded_streams(
+    seeds: Iterable[int], count: int, params: CacheParams | None = None
+) -> Iterable[list[CacheTxn]]:
     for seed in seeds:
         yield CacheGenerator(params, seed=seed).random_stream(count)

@@ -10,7 +10,7 @@ def walk(node: object, prefix: str = "") -> None:
         high = int(node["High"])
         low = int(node["Low"])
         width = 1 if high == -1 else high - low + 1
-        print(f"{prefix:55s} {str(node['Pin']):6s} {width}")
+        print(f"{prefix:55s} {node['Pin']!s:6s} {width}")
         return
     if isinstance(node, dict):
         for key, value in node.items():

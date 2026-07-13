@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from .faults import FaultInjector
 from .generator import CacheGenerator
-from .regression_analysis import write_reports
 from .reference_model import CacheParams, ReferenceCache
-from .scoreboard import Scoreboard, ScoreboardMismatch
+from .regression_analysis import write_reports
+from .scoreboard import ScoreboardMismatch
 from .transactions import CacheOp, CacheTxn
 
 
@@ -22,7 +22,9 @@ def run_core_regression(
 ) -> dict[str, object]:
     cache_params = params or CacheParams()
     smoke = _run_named_stream("smoke", _smoke_stream(), cache_params)
-    directed = _run_named_stream("directed", _directed_stream(cache_params), cache_params, mark_same_set=True)
+    directed = _run_named_stream(
+        "directed", _directed_stream(cache_params), cache_params, mark_same_set=True
+    )
     crv = [
         _run_named_stream(
             f"crv_seed_{seed}",
@@ -34,7 +36,11 @@ def run_core_regression(
     ]
     coverage = _run_coverage_closure(cache_params)
     faults = _run_fault_detection(cache_params)
-    passed = smoke["status"] == "PASS" and directed["status"] == "PASS" and all(item["status"] == "PASS" for item in crv)
+    passed = (
+        smoke["status"] == "PASS"
+        and directed["status"] == "PASS"
+        and all(item["status"] == "PASS" for item in crv)
+    )
     passed = passed and coverage["coverage_percent"] >= 90.0 and all(faults.values())
 
     summary: dict[str, object] = {
@@ -68,17 +74,15 @@ def run_enhanced_regression(
     - Auto-print transaction index on failure
     - Last 20 transaction repro window
     """
-    import sys
-
     cache_params = params or CacheParams()
 
     # Run enhanced core regression
-    print(f"\n{'='*60}")
-    print(f"Running Enhanced Regression")
+    print(f"\n{'=' * 60}")
+    print("Running Enhanced Regression")
     print(f"Core seeds: {list(core_seeds)}, count per seed: {core_count}")
     if dut_seeds:
         print(f"DUT seeds: {list(dut_seeds)}, count per seed: {dut_count}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     results = {
         "core_regression": [],
@@ -92,7 +96,9 @@ def run_enhanced_regression(
         result = _run_enhanced_core_seed(seed, core_count, cache_params)
         results["core_regression"].append(result)
         status = result["status"]
-        print(f"[Core Seed {seed}] Status: {status}, Txns: {result['transactions']}, Coverage: {result['coverage_percent']}%")
+        print(
+            f"[Core Seed {seed}] Status: {status}, Txns: {result['transactions']}, Coverage: {result['coverage_percent']}%"
+        )
         if status == "FAIL":
             print(f"  Error at txn #{result['error_txn_id']}: {result['error']}")
             print(f"  Repro window: {len(result['repro_window'])} transactions")
@@ -106,7 +112,7 @@ def run_enhanced_regression(
     # Fault detection
     faults = _run_fault_detection(cache_params)
     results["fault_detection"] = faults
-    print(f"\nFault Detection:")
+    print("\nFault Detection:")
     for name, detected in faults.items():
         print(f"  {name}: {'DETECTED' if detected else 'MISSED'}")
 
@@ -117,7 +123,9 @@ def run_enhanced_regression(
             result["name"] = f"dut_seed_{seed}"
             results["dut_regression"].append(result)
             status = result["status"]
-            print(f"[DUT Seed {seed}] Status: {status}, Txns: {result['transactions']}, Coverage: {result['coverage_percent']}%")
+            print(
+                f"[DUT Seed {seed}] Status: {status}, Txns: {result['transactions']}, Coverage: {result['coverage_percent']}%"
+            )
             if status == "FAIL":
                 print(f"  Error at txn #{result['error_txn_id']}: {result['error']}")
                 print(f"  Repro window: {len(result['repro_window'])} transactions")
@@ -129,9 +137,19 @@ def run_enhanced_regression(
 
     # Overall status
     all_core_passed = all(r["status"] == "PASS" for r in results["core_regression"])
-    all_dut_passed = all(r["status"] == "PASS" for r in results["dut_regression"]) if results["dut_regression"] else True
+    all_dut_passed = (
+        all(r["status"] == "PASS" for r in results["dut_regression"])
+        if results["dut_regression"]
+        else True
+    )
     all_passed = all_core_passed and all_dut_passed
-    cov_pct = sum(1 for h in results["coverage_summary"].values() if h > 0) / len(results["coverage_summary"]) * 100.0 if results["coverage_summary"] else 100.0
+    cov_pct = (
+        sum(1 for h in results["coverage_summary"].values() if h > 0)
+        / len(results["coverage_summary"])
+        * 100.0
+        if results["coverage_summary"]
+        else 100.0
+    )
     overall_status = "PASS" if all_passed and cov_pct >= 90.0 else "FAIL"
 
     final_summary = {
@@ -151,25 +169,33 @@ def run_enhanced_regression(
 def _run_enhanced_core_seed(seed: int, count: int, params: CacheParams) -> dict[str, object]:
     """Run a single seed with enhanced reporting and independent verification."""
     from .coverage import Coverage
+
     ref = ReferenceCache(params)
     cov = Coverage(line_bytes=params.line_bytes)
     gen = CacheGenerator(params, seed=seed)
     txns = gen.random_stream(count)
     history: list[CacheTxn] = []
     written: dict[int, tuple[int, int]] = {}
+    # Track visited sets so same_set is sampled from real address locality,
+    # not a synthetic index modulo. This lets a single CRV seed reach the
+    # addr.same_set bin once the hot set is revisited.
+    visited_sets: set[int] = set()
 
     for index, txn in enumerate(txns):
         history.append(txn)
         latency = 10 if index % 11 == 0 else index % 4
         try:
             response = ref.access(txn)
+            set_idx = (txn.addr // params.line_bytes) % params.sets
+            same_set = set_idx in visited_sets
+            visited_sets.add(set_idx)
             cov.sample_access(
                 txn,
                 hit=response.hit,
                 evicted_dirty=response.evicted_dirty,
                 evicted_clean=(response.evicted and not response.evicted_dirty),
                 latency=latency,
-                same_set=index % 7 == 0,
+                same_set=same_set,
             )
 
             # Track writes for deterministic verification.
@@ -246,23 +272,33 @@ def _run_named_stream(
     verification delegated to directed cases and fault injection.
     """
     from .coverage import Coverage
+
     ref = ReferenceCache(params)
     cov = Coverage(line_bytes=params.line_bytes)
     written: dict[int, tuple[int, int]] = {}
     history: list[CacheTxn] = []
+    # When mark_same_set is False (e.g. CRV streams), still sample same_set
+    # from real address locality so a single seed can reach the bin.
+    visited_sets: set[int] = set()
 
     for index, txn in enumerate(txns):
         latency = 10 if index % 11 == 0 else index % 4
         history.append(txn)
         try:
             response = ref.access(txn)
+            if mark_same_set:
+                same_set = True
+            else:
+                set_idx = (txn.addr // params.line_bytes) % params.sets
+                same_set = set_idx in visited_sets
+                visited_sets.add(set_idx)
             cov.sample_access(
                 txn,
                 hit=response.hit,
                 evicted_dirty=response.evicted_dirty,
                 evicted_clean=(response.evicted and not response.evicted_dirty),
                 latency=latency,
-                same_set=mark_same_set,
+                same_set=same_set,
             )
 
             if verify_read_data and txn.op is CacheOp.READ and txn.addr in written:
@@ -349,7 +385,15 @@ def _directed_stream(params: CacheParams) -> list[CacheTxn]:
     txns.extend(
         [
             CacheTxn(CacheOp.READ, addr=0x38, size=8, txn_id=10_001),
-            CacheTxn(CacheOp.WRITE, addr=0x2000, size=1, data=0x5A, mask=0x1, txn_id=10_002, uncached=True),
+            CacheTxn(
+                CacheOp.WRITE,
+                addr=0x2000,
+                size=1,
+                data=0x5A,
+                mask=0x1,
+                txn_id=10_002,
+                uncached=True,
+            ),
             CacheTxn(CacheOp.READ, addr=0x2000, size=1, txn_id=10_003, uncached=True),
         ]
     )
@@ -358,11 +402,15 @@ def _directed_stream(params: CacheParams) -> list[CacheTxn]:
 
 def _raw_hazard_sequence(base: int, *, start_id: int) -> list[CacheTxn]:
     return [
-        CacheTxn(CacheOp.WRITE, addr=base, size=8, data=0x0102030405060708, mask=0xFF, txn_id=start_id),
+        CacheTxn(
+            CacheOp.WRITE, addr=base, size=8, data=0x0102030405060708, mask=0xFF, txn_id=start_id
+        ),
         CacheTxn(CacheOp.READ, addr=base, size=8, txn_id=start_id + 1),
         CacheTxn(CacheOp.WRITE, addr=base + 2, size=2, data=0xAABB, mask=0x3, txn_id=start_id + 2),
         CacheTxn(CacheOp.READ, addr=base, size=8, txn_id=start_id + 3),
-        CacheTxn(CacheOp.WRITE, addr=base, size=4, data=0xDEADBEEF, mask=0b1010, txn_id=start_id + 4),
+        CacheTxn(
+            CacheOp.WRITE, addr=base, size=4, data=0xDEADBEEF, mask=0b1010, txn_id=start_id + 4
+        ),
         CacheTxn(CacheOp.READ, addr=base, size=8, txn_id=start_id + 5),
     ]
 
@@ -378,6 +426,7 @@ def _line_boundary_sequence(*, start_id: int) -> list[CacheTxn]:
 
 def _run_coverage_closure(params: CacheParams) -> dict[str, object]:
     from .coverage import Coverage
+
     ref = ReferenceCache(params)
     cov = Coverage(line_bytes=params.line_bytes)
     gen = CacheGenerator(params, seed=19)
@@ -521,10 +570,14 @@ def _txn_to_dict(txn: CacheTxn) -> dict[str, object]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run DUT-independent NutShell Cache VIP regression.")
+    parser = argparse.ArgumentParser(
+        description="Run DUT-independent NutShell Cache VIP regression."
+    )
     parser.add_argument("--seeds", default="1,2,3", help="comma-separated CRV seeds")
     parser.add_argument("--count", type=int, default=300, help="transactions per CRV seed")
-    parser.add_argument("--report-dir", type=Path, default=Path("reports"), help="directory for generated reports")
+    parser.add_argument(
+        "--report-dir", type=Path, default=Path("reports"), help="directory for generated reports"
+    )
     args = parser.parse_args(argv)
     seeds = [int(seed.strip()) for seed in args.seeds.split(",") if seed.strip()]
     summary = run_core_regression(seeds=seeds, count=args.count, report_dir=args.report_dir)

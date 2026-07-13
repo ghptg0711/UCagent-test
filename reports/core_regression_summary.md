@@ -14,6 +14,7 @@ Status: `PASS`
 - partial_write_mask_drop: `detected`
 - dirty_writeback_corruption: `detected`
 - response_order_swap: `detected`
+- tag_compare_error: `detected`
 
 ## Required Bin Counts
 
@@ -41,8 +42,6 @@ Status: `PASS`
 
 ## CRV
 
-- crv_seed_1: `1000` transactions, status `PASS`, coverage `94.73684210526316%`
-- crv_seed_2: `1000` transactions, status `PASS`, coverage `94.73684210526316%`
-- crv_seed_3: `1000` transactions, status `PASS`, coverage `94.73684210526316%`
-- crv_seed_4: `1000` transactions, status `PASS`, coverage `94.73684210526316%`
-- crv_seed_5: `1000` transactions, status `PASS`, coverage `94.73684210526316%`
+- crv_seed_1: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_2: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_3: `300` transactions, status `PASS`, coverage `100.0%`

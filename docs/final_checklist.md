@@ -84,10 +84,10 @@
 
 ### 3.1 赛题文档
 
-- [x] [contest_statement.md](file:///d:/UCagent/docs/contest_statement.md) - 赛题说明
-- [x] [overall_solution.md](file:///d:/UCagent/docs/overall_solution.md) - 整体方案
-- [x] [acceptance_document.md](file:///d:/UCagent/docs/acceptance_document.md) - 验收文档
-- [x] [verification_report.md](file:///d:/UCagent/docs/verification_report.md) - 验证报告
+- [x] [contest_statement.md](file:///d:/UCagent-V2/UCagent-test/docs/contest_statement.md) - 赛题说明
+- [x] [overall_solution.md](file:///d:/UCagent-V2/UCagent-test/docs/overall_solution.md) - 整体方案
+- [x] [acceptance_document.md](file:///d:/UCagent-V2/UCagent-test/docs/acceptance_document.md) - 验收文档
+- [x] [verification_report.md](file:///d:/UCagent-V2/UCagent-test/docs/verification_report.md) - 验证报告
 
 ### 3.2 优化计划
 
@@ -95,11 +95,11 @@
 
 ### 3.3 报告
 
-- [x] [coverage_summary.md](file:///d:/UCagent/reports/coverage_summary.md) - 覆盖率摘要
-- [x] [dut_smoke_result.md](file:///d:/UCagent/reports/dut_smoke_result.md) - DUT smoke 结果
-- [x] [bug_tracker.md](file:///d:/UCagent/reports/bug_tracker.md) - Bug 记录
-- [x] [core_regression_summary.md](file:///d:/UCagent/reports/core_regression_summary.md) - 核心回归摘要
-- [x] [ai_collaboration_log.md](file:///d:/UCagent/reports/ai_collaboration_log.md) - AI 协作记录
+- [x] [coverage_summary.md](file:///d:/UCagent-V2/UCagent-test/reports/coverage_summary.md) - 覆盖率摘要
+- [x] [dut_smoke_result.md](file:///d:/UCagent-V2/UCagent-test/reports/dut_smoke_result.md) - DUT smoke 结果
+- [x] [bug_tracker.md](file:///d:/UCagent-V2/UCagent-test/reports/bug_tracker.md) - Bug 记录
+- [x] [core_regression_summary.md](file:///d:/UCagent-V2/UCagent-test/reports/core_regression_summary.md) - 核心回归摘要
+- [x] [ai_collaboration_log.md](file:///d:/UCagent-V2/UCagent-test/reports/ai_collaboration_log.md) - AI 协作记录
 
 ## 4. 可复现性
 

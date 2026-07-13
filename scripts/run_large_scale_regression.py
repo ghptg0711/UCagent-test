@@ -5,21 +5,26 @@ Runs 10 seeds x 1000 transactions = 10,000 transactions.
 Each transaction averages ~10 cycles, yielding ~100,000 cycles.
 Uses the real DUT adapter in WSL2 for authentic simulation evidence.
 """
+
 from __future__ import annotations
 
 import asyncio
 import json
-import sys
 from datetime import datetime
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from cache_vip.coverage import Coverage
 from cache_vip.generator import CacheGenerator
 from cache_vip.reference_model import CacheParams, ReferenceCache
-from cache_vip.transactions import CacheOp, CacheTxn
+from cache_vip.transactions import CacheOp
+
+
+def _is_same_set_revisit(addr: int, params: CacheParams, visited_sets: set[int]) -> bool:
+    """Return whether *addr* revisits a previously sampled cache set."""
+    set_idx = (addr // params.line_bytes) % params.sets
+    revisited = set_idx in visited_sets
+    visited_sets.add(set_idx)
+    return revisited
 
 
 async def run_large_scale_regression(
@@ -36,7 +41,7 @@ async def run_large_scale_regression(
     total_failed = 0
     results = []
 
-    print(f"=== Large Scale Regression ===")
+    print("=== Large Scale Regression ===")
     print(f"Seeds: {len(seeds)}")
     print(f"Transactions per seed: {txns_per_seed}")
     print(f"Total transactions: {len(seeds) * txns_per_seed}")
@@ -46,6 +51,7 @@ async def run_large_scale_regression(
     if use_real_dut:
         try:
             from cache_vip.real_dut_adapter import create_real_dut_adapter
+
             real_adapter = await create_real_dut_adapter()
             print("Real DUT adapter initialized (WSL2 mode)")
         except Exception as e:
@@ -53,9 +59,9 @@ async def run_large_scale_regression(
             real_adapter = None
 
     for seed in seeds:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Running seed {seed} ({txns_per_seed} transactions)")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         ref = ReferenceCache(params)
         cov = Coverage(line_bytes=params.line_bytes)
@@ -65,6 +71,7 @@ async def run_large_scale_regression(
         passed = 0
         failed = 0
         cycle_count = 0
+        visited_sets: set[int] = set()
 
         for i, txn in enumerate(txns):
             if i % 100 == 0:
@@ -78,6 +85,7 @@ async def run_large_scale_regression(
                     response = ref.access(txn)
 
                 latency = 10 if i % 11 == 0 else i % 4
+                same_set = _is_same_set_revisit(txn.addr, params, visited_sets)
                 # Each transaction requires handshake + memory access + response
                 # Realistic cycle estimate: handshake(2) + memory(4-8) + response(2)
                 cycle_count += max(latency, 1) + 10
@@ -88,7 +96,7 @@ async def run_large_scale_regression(
                     evicted_dirty=response.evicted_dirty,
                     evicted_clean=(response.evicted and not response.evicted_dirty),
                     latency=latency,
-                    same_set=False,
+                    same_set=same_set,
                 )
 
                 if txn.op is CacheOp.WRITE:
@@ -115,7 +123,7 @@ async def run_large_scale_regression(
         total_passed += passed
         total_failed += failed
 
-        print(f"\n✅ Seed {seed} completed:")
+        print(f"\n[PASS] Seed {seed} completed:")
         print(f"   Transactions: {txns_per_seed}")
         print(f"   Passed: {passed}")
         print(f"   Failed: {failed}")
@@ -124,9 +132,9 @@ async def run_large_scale_regression(
 
     pass_rate = total_passed / total_txns * 100 if total_txns > 0 else 0
 
-    print(f"\n{'='*60}")
-    print(f"=== Regression Summary ===")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("=== Regression Summary ===")
+    print(f"{'=' * 60}")
     print(f"Total seeds: {len(seeds)}")
     print(f"Total transactions: {total_txns}")
     print(f"Total cycles: {total_cycles}")
@@ -179,13 +187,13 @@ async def run_large_scale_regression(
         encoding="utf-8",
     )
 
-    print(f"\n✅ Report saved to: {report_path}")
-    print(f"✅ JSON saved to: {json_path}")
+    print(f"\nReport saved to: {report_path}")
+    print(f"JSON saved to: {json_path}")
 
     if total_cycles >= 100000:
-        print(f"\n✅ PASS: Total cycles ({total_cycles}) >= 100,000")
+        print(f"\n[PASS] Total cycles ({total_cycles}) >= 100,000")
     else:
-        print(f"\n⚠️ WARNING: Total cycles ({total_cycles}) < 100,000")
+        print(f"\n[WARN] Total cycles ({total_cycles}) < 100,000")
 
     return {
         "total_cycles": total_cycles,

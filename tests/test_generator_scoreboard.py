@@ -4,8 +4,7 @@ from cache_vip.faults import FaultInjector
 from cache_vip.generator import CacheGenerator
 from cache_vip.reference_model import CacheParams, ReferenceCache
 from cache_vip.scoreboard import Scoreboard, ScoreboardMismatch
-from cache_vip.transactions import CacheTxn
-from cache_vip.transactions import CacheOp
+from cache_vip.transactions import CacheOp, CacheTxn
 
 
 def test_replacement_sequence_forces_dirty_eviction():
@@ -66,7 +65,9 @@ def test_scoreboard_detects_partial_write_mask_drop():
         expected_sb.compare_response(txn, faulty_ref.access(txn))
 
     expected_sb.push_request(txns[1])
-    expected_sb.compare_response(txns[1], faulty_ref.access(FaultInjector.drop_mask_bit(txns[1], bit=0)))
+    expected_sb.compare_response(
+        txns[1], faulty_ref.access(FaultInjector.drop_mask_bit(txns[1], bit=0))
+    )
 
     expected_sb.push_request(txns[2])
     with pytest.raises(ScoreboardMismatch):

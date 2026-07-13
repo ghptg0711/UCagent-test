@@ -73,13 +73,11 @@
 
 | Seed | 事务数 | 覆盖率 | Missing Bins |
 | --- | --- | --- | --- |
-| 1 | 1000 | 94.7% | addr.same_set |
-| 2 | 1000 | 94.7% | addr.same_set |
-| 3 | 1000 | 94.7% | addr.same_set |
-| 4 | 1000 | 94.7% | addr.same_set |
-| 5 | 1000 | 94.7% | addr.same_set |
+| 1 | 300 | 100.0% | 无 |
+| 2 | 300 | 100.0% | 无 |
+| 3 | 300 | 100.0% | 无 |
 
-**说明**：单个 CRV seed 难以触发 `addr.same_set` bin，需要 directed case 辅助。组合 smoke + directed + CRV 后达到 100%。
+**说明**：经 P1.3 人工约束细化(将 `same_set` 采样从合成的 `index % 7` 改为基于真实地址局部性:维护已访问 set 集合,当 set 被重复访问时标记 `same_set=True`),单个 CRV seed 现可独立达到 100% 覆盖率,不再依赖 directed case 辅助。改进前单 seed 仅 94.7%(missing `addr.same_set`)。这一改进体现了人工对 UCAgent 生成代码的约束细化价值。
 
 ## Fault Detection
 

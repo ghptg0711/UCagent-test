@@ -10,8 +10,9 @@ and coverage remain DUT-independent.
 
 from __future__ import annotations
 
-import yaml
 from dataclasses import dataclass
+
+import yaml
 
 from .transactions import CacheOp, CacheResponse, CacheTxn
 
@@ -67,7 +68,7 @@ class SignalMap:
 
 def load_signal_map(path: str) -> SignalMap:
     """Load signal map from YAML configuration file."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return SignalMap(**data)
 
@@ -82,7 +83,7 @@ class ToffeeCacheAdapter:
     async def reset(self, cycles: int = 10) -> None:
         """
         Reset the DUT by asserting the reset signal and waiting.
-        
+
         Steps:
         1. Assert reset signal (active high)
         2. Wait for specified number of clock cycles
@@ -98,7 +99,7 @@ class ToffeeCacheAdapter:
     async def drive_cpu_request(self, txn: CacheTxn) -> None:
         """
         Drive a CPU request to the DUT following valid/ready handshake.
-        
+
         Steps:
         1. Parse CacheTxn fields
         2. Set up DUT request signals:
@@ -157,9 +158,7 @@ class ToffeeCacheAdapter:
                 break
             wait_cycles += 1
             if wait_cycles > self._response_timeout:
-                raise TimeoutError(
-                    f"DUT response timeout after {self._response_timeout} cycles"
-                )
+                raise TimeoutError(f"DUT response timeout after {self._response_timeout} cycles")
             await self.dut.wait_cycles(1)
 
         rdata = await rdata_sig.read()

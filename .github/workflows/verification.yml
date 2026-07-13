@@ -22,9 +22,13 @@ jobs:
       - name: Check repository integrity
         run: |
           python tools/check_repo_health.py
+      - name: Check Python style
+        run: |
+          ruff check src tests scripts tools
+          ruff format --check src tests scripts tools
       - name: Run unit tests
         run: |
-          PYTHONPATH=src python -m pytest tests/ -v --asyncio-mode=auto --ignore=tests/test_real_dut_smoke.py
+          python -m pytest tests/ -v --ignore=tests/test_real_dut_smoke.py --cov=cache_vip --cov-report=term-missing
       - name: Run core regression
         run: |
           PYTHONPATH=src python -c "from cache_vip.regression import run_core_regression; r = run_core_regression(seeds=(1,2,3), count=500); print('Status:', r['status'])"
@@ -46,4 +50,4 @@ jobs:
           python tools/check_repo_health.py
       - name: Run real DUT tests
         run: |
-          PYTHONPATH=src:. python -m pytest tests/test_real_dut_smoke.py -v --asyncio-mode=auto
+          bash run_wsl_tests.sh

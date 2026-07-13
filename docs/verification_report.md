@@ -195,5 +195,39 @@ The verification environment is significantly more complete than before. It now 
 4. **Toffee adapter**: Fully implemented and verified with mock DUT (7 smoke tests pass).
 5. **Memory agent**: Toffee-bound memory agent with fill, writeback, latency, and backpressure support.
 6. **Enhanced regression**: Support for 10+ seeds with per-seed coverage and failure repro windows.
+7. **Single-seed CRV closure**: After P1.3 same_set constraint refinement, a single CRV seed independently reaches 100% coverage (previously 94.7%, relying on directed cases).
 
-The remaining work is real DUT binding and RTL regression in the final NutShell environment.
+The real DUT binding and RTL regression are operational in WSL2. The remaining
+upstream work is the RTL redesign for BUG-010/011; the verification environment
+already detects and documents both defects.
+
+## 14. AI Collaboration & Prompt Strategy Innovation
+
+This project leverages UCAgent throughout the development cycle. The AI efficacy dimension is documented in three artifacts:
+
+- `reports/ai_collaboration_log.md` — Round 1-10 per-round records + "Prompt 策略演进" section
+- `docs/ai_defect_correction_table.md` — 17-row AI-defect-vs-manual-correction table + 3 Prompt Tuning case studies
+- `reports/bug_tracker.md` — BUG-002/004/005/009 are AI-generated code defects caught by manual review
+
+### Prompt Strategy Evolution (5 strategies)
+
+| Strategy | Round | Effect |
+| --- | --- | --- |
+| Small & focused > big & broad | 3-4 | Defects dropped (Round 4 only 2 bugs) |
+| Constraint checklist > vague description | 2-7 | Covered bins increased from 8/19 to 19/19 |
+| Independent oracle > self-comparison | 7 | 4→5 fault detection |
+| Reviewer-perspective meta-prompt | 7 | 5 P0 + 4 P1 found in one round |
+| Scenario→human handoff at capability boundary | 8-9 | BUG-010/011 RTL defects located |
+
+### Key AI Defects Caught by Manual Review
+
+- **Circular verification**: AI scoreboard compared `ref.access()` to itself → rewrote with independent WRITE-tracking oracle
+- **Synthetic same_set sampling**: AI used `index % 7` instead of real address locality → rewrote to track visited sets (P1.3, single-seed CRV 94.7%→100%)
+- **Infinite-way mock DUT**: AI mock never evicted → rewrote with way limit + LRU + writeback
+- **Missing await on reset**: AI RealDUTWrapper never asserted reset → added `await`
+
+### UCAgent Capability Boundaries (3 cases)
+
+1. RTL microarchitecture analysis (BUG-010 LRU round-robin, BUG-011 dirty eviction deadlock) — purely manual
+2. Verilator C++ type system (VlWide<16> 512-bit signal) — purely manual
+3. Cross-environment integration (WSL2/Docker/xspcomm symlinks) — purely manual

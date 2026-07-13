@@ -19,33 +19,45 @@
 <line x1="60" y1="60.0" x2="740" y2="60.0" class="grid"/>
 <text x="55" y="64.0" text-anchor="end" class="label">100%</text>
 <text x="60.0" y="358" text-anchor="middle" class="label">Iter 1</text>
-<text x="135.55555555555554" y="358" text-anchor="middle" class="label">Iter 2</text>
-<text x="211.11111111111111" y="358" text-anchor="middle" class="label">Iter 3</text>
-<text x="286.66666666666663" y="358" text-anchor="middle" class="label">Iter 4</text>
-<text x="362.22222222222223" y="358" text-anchor="middle" class="label">Iter 5</text>
-<text x="437.77777777777777" y="358" text-anchor="middle" class="label">Iter 6</text>
-<text x="513.3333333333333" y="358" text-anchor="middle" class="label">Iter 7</text>
-<text x="588.8888888888889" y="358" text-anchor="middle" class="label">Iter 8</text>
-<text x="664.4444444444445" y="358" text-anchor="middle" class="label">Iter 9</text>
-<text x="740.0" y="358" text-anchor="middle" class="label">Iter 10</text>
+<text x="128.0" y="358" text-anchor="middle" class="label">Iter 2</text>
+<text x="196.0" y="358" text-anchor="middle" class="label">Iter 3</text>
+<text x="264.0" y="358" text-anchor="middle" class="label">Iter 4</text>
+<text x="332.0" y="358" text-anchor="middle" class="label">Iter 5</text>
+<text x="400.0" y="358" text-anchor="middle" class="label">Iter 6</text>
+<text x="468.0" y="358" text-anchor="middle" class="label">Iter 7</text>
+<text x="536.0" y="358" text-anchor="middle" class="label">Iter 8</text>
+<text x="604.0" y="358" text-anchor="middle" class="label">Iter 9</text>
+<text x="672.0" y="358" text-anchor="middle" class="label">Iter 10</text>
+<text x="740.0" y="358" text-anchor="middle" class="label">Iter 11</text>
 <line x1="60" y1="60" x2="60" y2="340" class="axis"/>
 <line x1="60" y1="340" x2="740" y2="340" class="axis"/>
-<polyline points="60.0,222.12 135.55555555555554,177.88000000000002 211.11111111111111,148.48 286.66666666666663,119.07999999999998 362.22222222222223,89.4 437.77777777777777,74.83999999999997 513.3333333333333,60.0 588.8888888888889,60.0 664.4444444444445,60.0 740.0,60.0" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+<polyline points="60.0,222.12 128.0,177.88000000000002 196.0,148.48 264.0,119.07999999999998 332.0,89.4 400.0,74.83999999999997 468.0,60.0 536.0,60.0 604.0,60.0 672.0,60.0 740.0,60.0" fill="none" stroke="#2563eb" stroke-width="2.5"/>
 <circle cx="60.0" cy="222.12" r="4" fill="#2563eb"/>
-<circle cx="135.55555555555554" cy="177.88000000000002" r="4" fill="#2563eb"/>
-<circle cx="211.11111111111111" cy="148.48" r="4" fill="#2563eb"/>
-<circle cx="286.66666666666663" cy="119.07999999999998" r="4" fill="#2563eb"/>
-<circle cx="362.22222222222223" cy="89.4" r="4" fill="#2563eb"/>
-<circle cx="437.77777777777777" cy="74.83999999999997" r="4" fill="#2563eb"/>
-<circle cx="513.3333333333333" cy="60.0" r="4" fill="#2563eb"/>
-<circle cx="588.8888888888889" cy="60.0" r="4" fill="#2563eb"/>
-<circle cx="664.4444444444445" cy="60.0" r="4" fill="#2563eb"/>
+<circle cx="128.0" cy="177.88000000000002" r="4" fill="#2563eb"/>
+<circle cx="196.0" cy="148.48" r="4" fill="#2563eb"/>
+<circle cx="264.0" cy="119.07999999999998" r="4" fill="#2563eb"/>
+<circle cx="332.0" cy="89.4" r="4" fill="#2563eb"/>
+<circle cx="400.0" cy="74.83999999999997" r="4" fill="#2563eb"/>
+<circle cx="468.0" cy="60.0" r="4" fill="#2563eb"/>
+<circle cx="536.0" cy="60.0" r="4" fill="#2563eb"/>
+<circle cx="604.0" cy="60.0" r="4" fill="#2563eb"/>
+<circle cx="672.0" cy="60.0" r="4" fill="#2563eb"/>
 <circle cx="740.0" cy="60.0" r="4" fill="#2563eb"/>
-<polyline points="60.0,322.7692307692308 135.55555555555554,312.4307692307692 211.11111111111111,288.3076923076923 286.66666666666663,264.18461538461537 362.22222222222223,226.27692307692308 437.77777777777777,209.04615384615383 513.3333333333333,167.69230769230768 588.8888888888889,167.69230769230768 664.4444444444445,140.1230769230769 740.0,116.0" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,3"/>
+<polyline points="60.0,323.52941176470586 128.0,313.6470588235294 196.0,290.5882352941176 264.0,267.52941176470586 332.0,231.29411764705884 400.0,214.8235294117647 468.0,175.29411764705878 536.0,175.29411764705878 604.0,148.94117647058823 672.0,125.88235294117644 740.0,116.0" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,3"/>
 <rect x="620" y="35" width="170" height="55" fill="white" stroke="#ccc" rx="4"/>
 <line x1="630" y1="50" x2="660" y2="50" stroke="#2563eb" stroke-width="2.5"/>
 <text x="665" y="54" class="legend">Coverage %</text>
 <line x1="630" y1="70" x2="660" y2="70" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,3"/>
 <text x="665" y="74" class="legend">Tests Passed</text>
 <text x="750.0" y="60.0" class="label" fill="#2563eb" font-weight="bold">100.0%</text>
+<polygon points="128.0,171.88000000000002 133.0,177.88000000000002 128.0,183.88000000000002 123.0,177.88000000000002" fill="#dc2626"/>
+<text x="128.0" y="165.88000000000002" text-anchor="middle" class="label" fill="#dc2626" font-size="9px">Round 2: constraint inventory</text>
+<polygon points="264.0,113.07999999999998 269.0,119.07999999999998 264.0,125.07999999999998 259.0,119.07999999999998" fill="#dc2626"/>
+<text x="264.0" y="107.07999999999998" text-anchor="middle" class="label" fill="#dc2626" font-size="9px">Round 4: parameterized strategy</text>
+<polygon points="468.0,54.0 473.0,60.0 468.0,66.0 463.0,60.0" fill="#dc2626"/>
+<text x="468.0" y="80.0" text-anchor="middle" class="label" fill="#dc2626" font-size="9px">Round 7: review findings</text>
+<polygon points="604.0,54.0 609.0,60.0 604.0,66.0 599.0,60.0" fill="#dc2626"/>
+<text x="604.0" y="80.0" text-anchor="middle" class="label" fill="#dc2626" font-size="9px">Rounds 8-9: real DUT and RTL fix</text>
+<polygon points="740.0,54.0 745.0,60.0 740.0,66.0 735.0,60.0" fill="#dc2626"/>
+<text x="740.0" y="80.0" text-anchor="middle" class="label" fill="#dc2626" font-size="9px">P1.3: same-set constraint</text>
 </svg>

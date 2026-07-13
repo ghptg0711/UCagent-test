@@ -1,43 +1,54 @@
-#!/bin/bash
-# WSL2 一键运行脚本：真实 NutShell Cache DUT 验证
-# Usage: wsl -e bash -c "cd /mnt/d/UCagent && bash run_wsl_tests.sh"
+#!/usr/bin/env bash
+# NutShell Cache verification runner for WSL2/Linux
 
-set -e
+set -euo pipefail
 
-echo "============================================================"
-echo "NutShell Cache Verification - WSL2 Runner"
-echo "============================================================"
-echo ""
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly ROOT_DIR
+readonly PIP_INDEX_URL="${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
+readonly XCOMM_SHORT_COMMIT="23ba5c4"
+readonly XSPCOMM_CACHE_ROOT="${XSPCOMM_CACHE_ROOT:-${HOME}/.cache/nutshell-cache-verification}"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 
-# Ensure dependencies
-if ! python3 -c "import pytest" 2>/dev/null; then
-    echo "Installing pytest dependencies..."
-    pip3 install --break-system-packages -i https://pypi.tuna.tsinghua.edu.cn/simple pytest pytest-asyncio 2>&1 | tail -3
+cd "${ROOT_DIR}"
+
+if ! "${PYTHON_BIN}" -m pytest --version >/dev/null 2>&1; then
+    readonly VENV_DIR="${HOME}/.cache/nutshell-cache-verification/venv"
+    echo "Creating verification environment at ${VENV_DIR}"
+    python3 -m venv "${VENV_DIR}"
+    PYTHON_BIN="${VENV_DIR}/bin/python"
+    "${PYTHON_BIN}" -m pip install \
+        --index-url "${PIP_INDEX_URL}" \
+        -e . \
+        -r requirements-dev.txt
 fi
 
-# Run all tests including real DUT
-echo "[1/3] Running all unit tests (including real DUT smoke)..."
-PYTHONPATH=src:. python3 -m pytest tests/ -v --asyncio-mode=auto 2>&1 | tail -20
-echo ""
+XSPCOMM_ROOT="${XSPCOMM_ROOT:-${XSPCOMM_CACHE_ROOT}/xcomm-${XCOMM_SHORT_COMMIT}}"
+PYTHON_ABI="$("${PYTHON_BIN}" -c \
+    "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")"
+if [[ ! -f "${XSPCOMM_ROOT}/build/.python-abi" ]] \
+    || [[ "$(<"${XSPCOMM_ROOT}/build/.python-abi")" != "${PYTHON_ABI}" ]]; then
+    echo "[1/5] Installing the Python-compatible xspcomm runtime"
+    PYTHON_BIN="${PYTHON_BIN}" \
+        bash scripts/install_xspcomm.sh
+else
+    echo "[1/5] Using cached xspcomm runtime for Python ${PYTHON_ABI}"
+fi
+export PYTHONPATH="${XSPCOMM_ROOT}/build/python${PYTHONPATH:+:${PYTHONPATH}}"
+export LD_LIBRARY_PATH="${XSPCOMM_ROOT}/build/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+"${PYTHON_BIN}" -c "import xspcomm"
 
-# Run core regression
-echo "[2/3] Running core regression (5 seeds x 1000 txns)..."
-PYTHONPATH=src:. python3 -c "
-from cache_vip.regression import run_core_regression
-r = run_core_regression(seeds=(1,2,3,4,5), count=1000)
-print('Overall:', r['status'])
-for c in r['crv']:
-    print(f\"  {c['name']}: {c['status']} ({c['transactions']} txns, {c['coverage_percent']:.1f}%)\")
-print('Coverage:', r['coverage']['coverage_percent'], '%')
-print('Faults:', r['fault_detection'])
-"
-echo ""
+echo "[2/5] Checking Python style"
+"${PYTHON_BIN}" -m ruff check src tests scripts tools
+"${PYTHON_BIN}" -m ruff format --check src tests scripts tools
 
-# Generate real DUT coverage
-echo "[3/3] Generating real DUT coverage report..."
-PYTHONPATH=src:. python3 tools/gen_real_dut_coverage.py 2>&1 | tail -15
-echo ""
+echo "[3/5] Running unit and real-DUT integration tests"
+"${PYTHON_BIN}" -m pytest tests -v --cov=cache_vip --cov-report=term-missing
 
-echo "============================================================"
-echo "All verification steps complete!"
-echo "============================================================"
+echo "[4/5] Running core regression"
+"${PYTHON_BIN}" -m cache_vip.regression --seeds 1,2,3,4,5 --count 1000
+
+echo "[5/5] Generating real-DUT coverage evidence"
+"${PYTHON_BIN}" tools/gen_real_dut_coverage.py
+
+echo "Verification completed successfully"

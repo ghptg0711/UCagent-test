@@ -7,29 +7,28 @@ providing Toffee-like async API for driving and sampling signals.
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 
 class Signal:
     """Mock signal that supports Toffee-like async read/write API."""
-    
+
     def __init__(self, name: str, width: int = 1, default: int = 0) -> None:
         self.name = name
         self.width = width
         self._value = default
         self._next_value = default
-    
+
     async def read(self) -> int:
         """Read the current value of the signal."""
         return self._value
-    
+
     async def write(self, value: int) -> None:
         """Set the next value of the signal (applied on next clock edge)."""
         if value < 0 or value >= (1 << self.width):
             raise ValueError(f"value {value} out of range for {self.width}-bit signal")
         self._next_value = value
-    
+
     def peek(self) -> int:
         """Peek the current value synchronously."""
         return self._value
@@ -37,92 +36,89 @@ class Signal:
 
 class MockDUT:
     """Mock NutShell Cache DUT with Toffee-like async API."""
-    
+
     def __init__(self) -> None:
-        self.signals: Dict[str, Signal] = {}
+        self.signals: dict[str, Signal] = {}
         self._clock_period_ns = 10
         self._reset_active_low = False
         self._reset_value = 0
-        
+
         self._init_signals()
-        self._internal_memory: Dict[int, int] = {}
-        self._internal_cache: Dict[int, Dict[str, Any]] = {}
+        self._internal_memory: dict[int, int] = {}
+        self._internal_cache: dict[int, dict[str, Any]] = {}
         self._cache_params = {"sets": 64, "ways": 4, "line_bytes": 64}
-        self._pending_response: Dict[str, Any] | None = None
-    
+        self._pending_response: dict[str, Any] | None = None
+
     def _init_signals(self) -> None:
         """Initialize DUT signals following typical NutShell Cache interface."""
         self.signals["clock"] = Signal("clock", 1, 0)
         self.signals["reset"] = Signal("reset", 1, 1)
-        
+
         self.signals["io_cpu_req_valid"] = Signal("io_cpu_req_valid", 1, 0)
         self.signals["io_cpu_req_ready"] = Signal("io_cpu_req_ready", 1, 1)
         self.signals["io_cpu_req_bits_addr"] = Signal("io_cpu_req_bits_addr", 64, 0)
         self.signals["io_cpu_req_bits_write"] = Signal("io_cpu_req_bits_write", 1, 0)
         self.signals["io_cpu_req_bits_wdata"] = Signal("io_cpu_req_bits_wdata", 64, 0)
         self.signals["io_cpu_req_bits_wmask"] = Signal("io_cpu_req_bits_wmask", 8, 0)
-        
+
         self.signals["io_cpu_resp_valid"] = Signal("io_cpu_resp_valid", 1, 0)
         self.signals["io_cpu_resp_ready"] = Signal("io_cpu_resp_ready", 1, 1)
         self.signals["io_cpu_resp_bits_data"] = Signal("io_cpu_resp_bits_data", 64, 0)
-        
+
         self.signals["io_mem_req_valid"] = Signal("io_mem_req_valid", 1, 0)
         self.signals["io_mem_req_ready"] = Signal("io_mem_req_ready", 1, 1)
         self.signals["io_mem_req_bits_addr"] = Signal("io_mem_req_bits_addr", 64, 0)
         self.signals["io_mem_req_bits_write"] = Signal("io_mem_req_bits_write", 1, 0)
         self.signals["io_mem_req_bits_wdata"] = Signal("io_mem_req_bits_wdata", 512, 0)
         self.signals["io_mem_req_bits_wmask"] = Signal("io_mem_req_bits_wmask", 64, 0)
-        
+
         self.signals["io_mem_resp_valid"] = Signal("io_mem_resp_valid", 1, 0)
         self.signals["io_mem_resp_ready"] = Signal("io_mem_resp_ready", 1, 1)
         self.signals["io_mem_resp_bits_data"] = Signal("io_mem_resp_bits_data", 512, 0)
-    
+
     def __getattr__(self, name: str) -> Signal:
         """Allow signal access via attribute syntax."""
         if name in self.signals:
             return self.signals[name]
         raise AttributeError(f"DUT has no signal '{name}'")
-    
+
     async def wait_cycles(self, cycles: int) -> None:
         """Wait for the specified number of clock cycles."""
         for _ in range(cycles):
             await self._tick()
-    
+
     async def _tick(self) -> None:
         """Advance one clock cycle."""
         reset = await self.signals["reset"].read()
-        if self._reset_active_low:
-            is_reset = reset == 0
-        else:
-            is_reset = reset == 1
-        
+        is_reset = reset == 0 if self._reset_active_low else reset == 1
+
         if not is_reset:
             await self._update_internal_state()
-        
+
         for sig in self.signals.values():
             sig._value = sig._next_value
-        
+
         await asyncio.sleep(self._clock_period_ns / 1e9)
-    
+
     async def _update_internal_state(self) -> None:
         """Update internal cache state based on current signals."""
         req_valid = await self.signals["io_cpu_req_valid"].read()
         req_ready = await self.signals["io_cpu_req_ready"].read()
-        
+
         if req_valid and req_ready:
             addr = await self.signals["io_cpu_req_bits_addr"].read()
             write = await self.signals["io_cpu_req_bits_write"].read()
             wdata = await self.signals["io_cpu_req_bits_wdata"].read()
             wmask = await self.signals["io_cpu_req_bits_wmask"].read()
-            
+
             await self._process_request(addr, write, wdata, wmask)
-        
+
         resp_valid = await self.signals["io_cpu_resp_valid"].read()
         resp_ready = await self.signals["io_cpu_resp_ready"].read()
         if resp_valid and resp_ready:
             self._pending_response = None
             await self.signals["io_cpu_resp_valid"].write(0)
-    
+
     async def _process_request(self, addr: int, write: int, wdata: int, wmask: int) -> None:
         """Process a CPU request and generate response."""
         line_bytes = self._cache_params["line_bytes"]
@@ -150,7 +146,7 @@ class MockDUT:
                 hit = True
                 hit_way = way_idx
                 line_data = way_data["data"]
-                rdata = int.from_bytes(line_data[offset:offset+8], "little")
+                rdata = int.from_bytes(line_data[offset : offset + 8], "little")
                 break
 
         if not hit:
@@ -186,10 +182,7 @@ class MockDUT:
                 "access_time": 0,
             }
 
-            if write:
-                rdata = 0
-            else:
-                rdata = int.from_bytes(line_data[offset:offset+8], "little")
+            rdata = 0 if write else int.from_bytes(line_data[offset : offset + 8], "little")
 
             # Simulate miss latency (2 cycles)
             await asyncio.sleep(0)
@@ -198,23 +191,21 @@ class MockDUT:
         if write:
             line_data = bytearray(set_entry[hit_way]["data"])
             for i in range(8):
-                if wmask & (1 << i):
-                    if offset + i < line_bytes:
-                        line_data[offset + i] = (wdata >> (8 * i)) & 0xFF
+                if wmask & (1 << i) and offset + i < line_bytes:
+                    line_data[offset + i] = (wdata >> (8 * i)) & 0xFF
             set_entry[hit_way]["data"] = bytes(line_data)
             set_entry[hit_way]["dirty"] = True
             if not hit:
                 rdata = 0
 
         # Update access time for LRU
-        set_entry[hit_way]["access_time"] = max(
-            (w.get("access_time", 0) for w in set_entry.values()),
-            default=0
-        ) + 1
+        set_entry[hit_way]["access_time"] = (
+            max((w.get("access_time", 0) for w in set_entry.values()), default=0) + 1
+        )
 
         await self.signals["io_cpu_resp_bits_data"].write(rdata)
         await self.signals["io_cpu_resp_valid"].write(1)
-    
+
     async def set_memory_data(self, addr: int, data: bytes) -> None:
         """Set initial memory data for testing."""
         for i, byte in enumerate(data):

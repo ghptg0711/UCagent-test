@@ -12,7 +12,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-
 COVERAGE_DIR = Path("reports/verilator_coverage")
 INFO_PATH = COVERAGE_DIR / "coverage.info"
 DAT_PATH = COVERAGE_DIR / "coverage.dat"
@@ -80,8 +79,12 @@ def main() -> None:
     print("=" * 60)
     print(f"Source: {source}")
     print("Tool: Verilator")
-    print(f"Line Coverage:   {result['line']['hit']}/{result['line']['total']} ({result['line']['pct']}%)")
-    print(f"Branch Coverage: {result['branch']['hit']}/{result['branch']['total']} ({result['branch']['pct']}%)")
+    print(
+        f"Line Coverage:   {result['line']['hit']}/{result['line']['total']} ({result['line']['pct']}%)"
+    )
+    print(
+        f"Branch Coverage: {result['branch']['hit']}/{result['branch']['total']} ({result['branch']['pct']}%)"
+    )
     print(f"Saved to: {SUMMARY_PATH}")
 
 

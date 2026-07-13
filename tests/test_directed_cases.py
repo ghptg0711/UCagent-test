@@ -13,15 +13,21 @@ Tests the new generator methods and parameterized cache strategies:
 
 import pytest
 
-from cache_vip.generator import CacheGenerator
-from cache_vip.reference_model import CacheParams, ReplacementPolicy, ReferenceCache
-from cache_vip.scoreboard import Scoreboard, ScoreboardMismatch
 from cache_vip.coverage import Coverage
-from cache_vip.memory_agent import ScriptedMemoryAgent, ToffeeMemoryAgent, MemoryRequest, MemoryResponse
+from cache_vip.generator import CacheGenerator
+from cache_vip.memory_agent import (
+    MemoryRequest,
+    ScriptedMemoryAgent,
+    ToffeeMemoryAgent,
+)
+from cache_vip.reference_model import CacheParams, ReferenceCache, ReplacementPolicy
+from cache_vip.scoreboard import ScoreboardMismatch
 from cache_vip.transactions import CacheOp, CacheTxn
 
 
-def _run_stream(txns: list[CacheTxn], params: CacheParams | None = None, *, mark_same_set: bool = False) -> dict:
+def _run_stream(
+    txns: list[CacheTxn], params: CacheParams | None = None, *, mark_same_set: bool = False
+) -> dict:
     """Run a stream of transactions and verify functional correctness.
 
     Instead of comparing the reference model to itself, this function:
@@ -33,6 +39,7 @@ def _run_stream(txns: list[CacheTxn], params: CacheParams | None = None, *, mark
     ref = ReferenceCache(params)
     cov = Coverage(line_bytes=(params or CacheParams()).line_bytes) if params else Coverage()
     from cache_vip.coverage import Coverage as _Cov
+
     cov = _Cov(line_bytes=(params or CacheParams()).line_bytes)
 
     # Track which addresses have been written and their expected values
@@ -60,13 +67,13 @@ def _run_stream(txns: list[CacheTxn], params: CacheParams | None = None, *, mark
                     actual_bytes = response.data & effective_mask
                     expected_bytes = prev_data & effective_mask
                     if actual_bytes != expected_bytes:
-                            return {
-                                "status": "FAIL",
-                                "index": index,
-                                "error": f"read data mismatch at addr 0x{txn.addr:x}: "
-                                         f"written 0x{prev_data:x} mask 0x{prev_mask:x}, "
-                                         f"got 0x{response.data:x}"
-                            }
+                        return {
+                            "status": "FAIL",
+                            "index": index,
+                            "error": f"read data mismatch at addr 0x{txn.addr:x}: "
+                            f"written 0x{prev_data:x} mask 0x{prev_mask:x}, "
+                            f"got 0x{response.data:x}",
+                        }
 
             # Track writes
             if txn.op is CacheOp.WRITE:
@@ -264,18 +271,24 @@ class TestMemoryAgent:
 
     def test_toffee_memory_agent_writeback_log(self):
         """Test ToffeeMemoryAgent writeback logging."""
-        from tests.mock_dut import create_mock_dut
-        from cache_vip.toffee_adapter import SignalMap
         import asyncio
+
+        from cache_vip.toffee_adapter import SignalMap
+        from tests.mock_dut import create_mock_dut
 
         async def _test():
             dut = await create_mock_dut()
             sm = SignalMap(
-                clock="clock", reset="reset",
-                cpu_req_valid="io_cpu_req_valid", cpu_req_ready="io_cpu_req_ready",
-                cpu_req_addr="io_cpu_req_bits_addr", cpu_req_write="io_cpu_req_bits_write",
-                cpu_req_wdata="io_cpu_req_bits_wdata", cpu_req_wmask="io_cpu_req_bits_wmask",
-                cpu_resp_valid="io_cpu_resp_valid", cpu_resp_ready="io_cpu_resp_ready",
+                clock="clock",
+                reset="reset",
+                cpu_req_valid="io_cpu_req_valid",
+                cpu_req_ready="io_cpu_req_ready",
+                cpu_req_addr="io_cpu_req_bits_addr",
+                cpu_req_write="io_cpu_req_bits_write",
+                cpu_req_wdata="io_cpu_req_bits_wdata",
+                cpu_req_wmask="io_cpu_req_bits_wmask",
+                cpu_resp_valid="io_cpu_resp_valid",
+                cpu_resp_ready="io_cpu_resp_ready",
                 cpu_resp_rdata="io_cpu_resp_bits_data",
             )
             agent = ToffeeMemoryAgent(dut, sm)
@@ -307,9 +320,9 @@ class TestMemoryAgent:
 
         # Access way 0, then way 1, then way 0 again
         # True LRU order (least to most recent): 2, 3, 1, 0
-        ref.access(CacheTxn(CacheOp.READ, addr=0, size=8, txn_id=10))    # way 0
-        ref.access(CacheTxn(CacheOp.READ, addr=64, size=8, txn_id=11))   # way 1
-        ref.access(CacheTxn(CacheOp.READ, addr=0, size=8, txn_id=12))    # way 0 again
+        ref.access(CacheTxn(CacheOp.READ, addr=0, size=8, txn_id=10))  # way 0
+        ref.access(CacheTxn(CacheOp.READ, addr=64, size=8, txn_id=11))  # way 1
+        ref.access(CacheTxn(CacheOp.READ, addr=0, size=8, txn_id=12))  # way 0 again
 
         # Insert 5th tag -> should evict way 2 (LRU victim)
         # The round-robin bug in NutShellCache.v would evict a different way
@@ -330,9 +343,9 @@ class TestMemoryAgent:
         ref = ReferenceCache(params)
 
         # Write dirty data to addr 0 (fills way 0)
-        ref.access(CacheTxn(
-            CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1
-        ))
+        ref.access(
+            CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1)
+        )
 
         # Read from addr 0x40 -> miss, must evict dirty way 0, writeback, then fill
         resp = ref.access(CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2))

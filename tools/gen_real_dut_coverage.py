@@ -4,21 +4,17 @@ Usage (in WSL2):
     cd /mnt/d/UCagent
     PYTHONPATH=src:. python3 tools/gen_real_dut_coverage.py
 """
+
 from __future__ import annotations
 
 import asyncio
 import json
-import os
-import sys
 from pathlib import Path
 
-sys.path.insert(0, "src")
-sys.path.insert(0, ".")
-
-from cache_vip.real_dut_adapter import create_real_dut_adapter
-from cache_vip.transactions import CacheOp, CacheTxn
 from cache_vip.generator import CacheGenerator
+from cache_vip.real_dut_adapter import create_real_dut_adapter
 from cache_vip.reference_model import CacheParams
+from cache_vip.transactions import CacheOp, CacheTxn
 
 COVERAGE_FILE = "reports/real_dut_coverage.dat"
 REPORT_DIR = Path("reports/real_dut_coverage")
@@ -38,14 +34,16 @@ async def main() -> None:
         # Basic read miss
         CacheTxn(CacheOp.READ, addr=0x00, size=8, txn_id=txn_id),
         # Write then read
-        CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=txn_id+1),
-        CacheTxn(CacheOp.READ, addr=0x00, size=8, txn_id=txn_id+2),
+        CacheTxn(
+            CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=txn_id + 1
+        ),
+        CacheTxn(CacheOp.READ, addr=0x00, size=8, txn_id=txn_id + 2),
         # Partial write with mask
-        CacheTxn(CacheOp.WRITE, addr=0x04, size=4, data=0xAABBCCDD, mask=0b0101, txn_id=txn_id+3),
-        CacheTxn(CacheOp.READ, addr=0x00, size=8, txn_id=txn_id+4),
+        CacheTxn(CacheOp.WRITE, addr=0x04, size=4, data=0xAABBCCDD, mask=0b0101, txn_id=txn_id + 3),
+        CacheTxn(CacheOp.READ, addr=0x00, size=8, txn_id=txn_id + 4),
         # Read miss then hit (same line)
-        CacheTxn(CacheOp.READ, addr=0x100, size=8, txn_id=txn_id+5),
-        CacheTxn(CacheOp.READ, addr=0x100, size=8, txn_id=txn_id+6),
+        CacheTxn(CacheOp.READ, addr=0x100, size=8, txn_id=txn_id + 5),
+        CacheTxn(CacheOp.READ, addr=0x100, size=8, txn_id=txn_id + 6),
     ]
     txn_id += 7
 
@@ -53,8 +51,10 @@ async def main() -> None:
     for txn in txns:
         await adapter.drive_cpu_request(txn)
         resp = await adapter.sample_cpu_response()
-        print(f"  txn {txn.txn_id}: op={txn.op.name} addr=0x{txn.addr:x} -> "
-              f"data=0x{resp.data:x} hit={resp.hit}")
+        print(
+            f"  txn {txn.txn_id}: op={txn.op.name} addr=0x{txn.addr:x} -> "
+            f"data=0x{resp.data:x} hit={resp.hit}"
+        )
     print("Directed transactions done")
 
     # Run CRV transactions
@@ -66,15 +66,12 @@ async def main() -> None:
         await adapter.drive_cpu_request(txn)
         await adapter.sample_cpu_response()
         if (i + 1) % 50 == 0:
-            print(f"  {i+1}/{len(crv_txns)} transactions done")
+            print(f"  {i + 1}/{len(crv_txns)} transactions done")
     print("CRV transactions done")
 
     # Flush coverage
     print("\nFinishing DUT...")
-    try:
-        adapter.finish()
-    except Exception:
-        pass
+    adapter.finish()
     print("DUT finished")
 
     # Generate functional coverage summary

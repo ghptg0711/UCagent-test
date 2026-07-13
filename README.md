@@ -27,8 +27,7 @@
 # 环境要求：Python 3.10+, WSL2 (Ubuntu), Verilator 5.032
 python -m venv .venv
 source .venv/bin/activate
-pip install -e .
-pip install -r requirements-dev.txt
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -e . -r requirements-dev.txt
 
 # 检查 Git 对象、gitlink、嵌套仓库和漏提交文件
 python tools/check_repo_health.py
@@ -39,9 +38,14 @@ python -m pytest tests/ -v --asyncio-mode=auto
 # 运行核心回归
 PYTHONPATH=src python -m cache_vip.regression
 
-# 运行真实 DUT 测试（需 WSL2）
-PYTHONPATH=src:. python -m pytest tests/test_real_dut_smoke.py -v --asyncio-mode=auto
+# WSL2 全量验证：自动从 GitLink 国内镜像获取并编译匹配当前 Python ABI 的 xspcomm
+bash run_wsl_tests.sh
 ```
+
+`run_wsl_tests.sh` 默认使用清华 PyPI 镜像；可通过 `PIP_INDEX_URL` 覆盖。xspcomm
+源码固定为官方提交 `23ba5c4`，优先从 GitLink 国内镜像获取，构建结果缓存在
+`~/.cache/nutshell-cache-verification/`。缺少 CMake、SWIG 或 Python 开发头文件时，
+安装脚本会使用当前 Ubuntu APT 源补齐依赖。
 
 ## Project Structure
 

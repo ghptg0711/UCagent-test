@@ -1,4 +1,6 @@
 pytest>=8.0
 pytest-asyncio>=0.23
+pytest-cov>=5.0
 pytoffee==0.3.1
+ruff==0.15.21
 

@@ -6,15 +6,12 @@ Usage (in WSL2):
     cd /mnt/d/UCagent
     PYTHONPATH=src:. python3 scripts/export_waveform.py
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from cache_vip.generator import CacheGenerator
 from cache_vip.reference_model import CacheParams
@@ -31,7 +28,7 @@ async def export_waveform(
 
     from cache_vip.real_dut_adapter import RealCacheAdapter
 
-    print(f"=== Waveform Export ===")
+    print("=== Waveform Export ===")
     print(f"Output: {abs_path}")
     print(f"Transactions: {txn_count}")
     print()
@@ -49,14 +46,14 @@ async def export_waveform(
         await adapter.drive_cpu_request(txn)
         await adapter.sample_cpu_response()
         if (i + 1) % 100 == 0:
-            print(f"  Progress: {i+1}/{txn_count} transactions")
+            print(f"  Progress: {i + 1}/{txn_count} transactions")
 
-    print(f"\n✅ Waveform exported to: {abs_path}")
+    print(f"\nWaveform exported to: {abs_path}")
     print(f"Total cycles: {adapter.cycle_count}")
 
     if os.path.exists(abs_path):
         size = os.path.getsize(abs_path)
-        print(f"File size: {size} bytes ({size/1024:.1f} KB)")
+        print(f"File size: {size} bytes ({size / 1024:.1f} KB)")
     else:
         print("Note: DUT may not support VCD/FST trace export directly.")
         print("Creating waveform evidence log instead...")

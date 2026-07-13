@@ -20,7 +20,9 @@ class Scoreboard:
     def __post_init__(self) -> None:
         self.coverage = Coverage(line_bytes=self.reference.params.line_bytes)
 
-    def push_request(self, txn: CacheTxn, *, latency: int = 0, same_set: bool = False) -> CacheResponse:
+    def push_request(
+        self, txn: CacheTxn, *, latency: int = 0, same_set: bool = False
+    ) -> CacheResponse:
         response = self.reference.access(txn)
         self.expected.append(response)
         self.coverage.sample_access(
@@ -38,7 +40,9 @@ class Scoreboard:
             raise ScoreboardMismatch(f"unexpected response txn_id={actual.txn_id}")
         expected = self.expected.pop(0)
         if expected.txn_id != actual.txn_id:
-            raise ScoreboardMismatch(f"txn order mismatch: expected {expected.txn_id}, got {actual.txn_id}")
+            raise ScoreboardMismatch(
+                f"txn order mismatch: expected {expected.txn_id}, got {actual.txn_id}"
+            )
         if expected.hit != actual.hit:
             raise ScoreboardMismatch(
                 f"hit/miss mismatch txn_id={txn.txn_id} addr=0x{txn.addr:x}: "
@@ -62,10 +66,14 @@ class Scoreboard:
         if expected.writeback_data != actual.writeback_data:
             raise ScoreboardMismatch(f"writeback data mismatch txn_id={txn.txn_id}")
         if expected.error != actual.error:
-            raise ScoreboardMismatch(f"error mismatch txn_id={txn.txn_id}: expected {expected.error}, got {actual.error}")
+            raise ScoreboardMismatch(
+                f"error mismatch txn_id={txn.txn_id}: expected {expected.error}, got {actual.error}"
+            )
 
-    def observe_transaction(self, txn: CacheTxn, actual: CacheResponse | None = None, *, latency: int = 0) -> None:
-        expected = self.push_request(txn, latency=latency)
+    def observe_transaction(
+        self, txn: CacheTxn, actual: CacheResponse | None = None, *, latency: int = 0
+    ) -> None:
+        self.push_request(txn, latency=latency)
         if actual is None:
             raise ScoreboardMismatch(
                 f"observe_transaction requires actual response for txn_id={txn.txn_id}; "

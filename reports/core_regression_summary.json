@@ -4,11 +4,10 @@
     "name": "smoke",
     "status": "PASS",
     "transactions": 5,
-    "coverage_percent": 57.89473684210526,
+    "coverage_percent": 63.1578947368421,
     "missing_bins": [
       "access.write_miss",
       "addr.line_boundary",
-      "addr.same_set",
       "mask.single",
       "replacement.clean",
       "replacement.dirty",
@@ -27,47 +26,23 @@
     {
       "name": "crv_seed_1",
       "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 94.73684210526316,
-      "missing_bins": [
-        "addr.same_set"
-      ]
+      "transactions": 300,
+      "coverage_percent": 100.0,
+      "missing_bins": []
     },
     {
       "name": "crv_seed_2",
       "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 94.73684210526316,
-      "missing_bins": [
-        "addr.same_set"
-      ]
+      "transactions": 300,
+      "coverage_percent": 100.0,
+      "missing_bins": []
     },
     {
       "name": "crv_seed_3",
       "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 94.73684210526316,
-      "missing_bins": [
-        "addr.same_set"
-      ]
-    },
-    {
-      "name": "crv_seed_4",
-      "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 94.73684210526316,
-      "missing_bins": [
-        "addr.same_set"
-      ]
-    },
-    {
-      "name": "crv_seed_5",
-      "status": "PASS",
-      "transactions": 1000,
-      "coverage_percent": 94.73684210526316,
-      "missing_bins": [
-        "addr.same_set"
-      ]
+      "transactions": 300,
+      "coverage_percent": 100.0,
+      "missing_bins": []
     }
   ],
   "coverage": {
@@ -101,6 +76,7 @@
     "read_corruption": true,
     "partial_write_mask_drop": true,
     "dirty_writeback_corruption": true,
-    "response_order_swap": true
+    "response_order_swap": true,
+    "tag_compare_error": true
   }
 }

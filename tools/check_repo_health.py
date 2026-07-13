@@ -9,7 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "third_party_sources.json"
 
@@ -27,8 +26,15 @@ def git(*args: str, cwd: Path = ROOT, check: bool = True) -> subprocess.Complete
 
 def _ignored_paths() -> set[str]:
     """Return paths that git ignores (so nested scans can skip them)."""
-    result = git("ls-files", "--others", "--ignored", "--exclude-standard",
-                "--directory", "--no-empty-directory", check=False)
+    result = git(
+        "ls-files",
+        "--others",
+        "--ignored",
+        "--exclude-standard",
+        "--directory",
+        "--no-empty-directory",
+        check=False,
+    )
     return {line.rstrip("/\\") for line in result.stdout.splitlines() if line.strip()}
 
 
@@ -50,13 +56,9 @@ def nested_repositories() -> set[str]:
         if rel_dir == ".":
             rel_dir = ""
         # Prune ignored directories (e.g. .venv, build) in-place.
-        dirs[:] = [
-            d for d in dirs
-            if not _is_ignored(f"{rel_dir}/{d}".lstrip("/"))
-        ]
-        if ".git" in dirs or os.path.exists(os.path.join(current, ".git")):
-            if rel_dir:
-                repositories.add(rel_dir)
+        dirs[:] = [d for d in dirs if not _is_ignored(f"{rel_dir}/{d}".lstrip("/"))]
+        if rel_dir and (".git" in dirs or os.path.exists(os.path.join(current, ".git"))):
+            repositories.add(rel_dir)
     return repositories
 
 
@@ -108,7 +110,9 @@ def main() -> int:
             failures.append(f"{path}: nested repository has uncommitted files:\n{status}")
         nested_integrity = git("fsck", "--full", "--strict", cwd=repo, check=False)
         if nested_integrity.returncode:
-            failures.append(f"{path}: Git object integrity failed:\n{nested_integrity.stdout.strip()}")
+            failures.append(
+                f"{path}: Git object integrity failed:\n{nested_integrity.stdout.strip()}"
+            )
         print(f"[ok] {path} is pinned at {head}")
 
     dirty = git("status", "--porcelain", "--untracked-files=all").stdout.strip()

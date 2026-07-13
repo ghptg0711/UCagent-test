@@ -9,8 +9,12 @@ from pathlib import Path
 def write_reports(report_dir: Path, summary: dict[str, object]) -> None:
     """Write JSON and Markdown regression summaries."""
     report_dir.mkdir(parents=True, exist_ok=True)
-    (report_dir / "core_regression_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    (report_dir / "core_regression_summary.md").write_text(format_markdown(summary), encoding="utf-8")
+    (report_dir / "core_regression_summary.json").write_text(
+        json.dumps(summary, indent=2), encoding="utf-8"
+    )
+    (report_dir / "core_regression_summary.md").write_text(
+        format_markdown(summary), encoding="utf-8"
+    )
 
 
 def format_markdown(summary: dict[str, object]) -> str:
@@ -65,14 +69,16 @@ def _format_enhanced_markdown(summary: dict[str, object]) -> list[str]:
     total_bins = len(cov_summary)
     covered_bins = sum(1 for h in cov_summary.values() if h > 0)
     cov_pct = (covered_bins / total_bins * 100.0) if total_bins else 100.0
-    lines.extend([
-        "## Coverage Summary",
-        "",
-        f"- Bin coverage: `{cov_pct:.1f}%` ({covered_bins}/{total_bins})",
-        "",
-        "| Bin | Total Hits |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "## Coverage Summary",
+            "",
+            f"- Bin coverage: `{cov_pct:.1f}%` ({covered_bins}/{total_bins})",
+            "",
+            "| Bin | Total Hits |",
+            "| --- | ---: |",
+        ]
+    )
     for name, hits in cov_summary.items():
         lines.append(f"| `{name}` | {hits} |")
 
