@@ -48,10 +48,12 @@ if [[ "${EMULATE_REAL_DUT_CPU:-0}" == "1" ]]; then
         echo "ERROR: EMULATE_REAL_DUT_CPU=1 requires qemu-x86_64 (qemu-user)." >&2
         exit 2
     fi
+    DUT_PYTHON_BIN="$(command -v "${PYTHON_BIN}")"
+    readonly DUT_PYTHON_BIN
     "${PYTHON_BIN}" -m pytest tests -v \
         --ignore=tests/test_real_dut_smoke.py \
         --cov=cache_vip --cov-report=term-missing
-    qemu-x86_64 -cpu max "${PYTHON_BIN}" -m pytest \
+    qemu-x86_64 -cpu max "${DUT_PYTHON_BIN}" -m pytest \
         tests/test_real_dut_smoke.py -v
 else
     "${PYTHON_BIN}" -m pytest tests -v --cov=cache_vip --cov-report=term-missing
@@ -62,7 +64,7 @@ echo "[4/5] Running core regression"
 
 echo "[5/5] Generating real-DUT coverage evidence"
 if [[ "${EMULATE_REAL_DUT_CPU:-0}" == "1" ]]; then
-    qemu-x86_64 -cpu max "${PYTHON_BIN}" tools/gen_real_dut_coverage.py
+    qemu-x86_64 -cpu max "${DUT_PYTHON_BIN}" tools/gen_real_dut_coverage.py
 else
     "${PYTHON_BIN}" tools/gen_real_dut_coverage.py
 fi
