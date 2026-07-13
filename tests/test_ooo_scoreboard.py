@@ -2,7 +2,7 @@
 
 import pytest
 
-from cache_vip.ooo_scoreboard import OooScoreboard
+from cache_vip.ooo_scoreboard import OooScoreboard, WritebackEvent
 from cache_vip.scoreboard import ScoreboardMismatch
 from cache_vip.transactions import CacheOp, CacheResponse, CacheTxn
 
@@ -108,6 +108,136 @@ class TestOooScoreboard:
         assert s["matched"] == 1
         assert s["mismatched"] == 0
         assert s["pending"] == 0
+
+    def test_writeback_tracked_on_dirty_eviction(self):
+        """Dirty eviction should auto-register an expected writeback event."""
+        sb = OooScoreboard()
+        wb_data = bytes([0x11, 0x22, 0x33, 0x44] + [0] * 60)
+        txn = CacheTxn(CacheOp.READ, addr=0x200, size=4, txn_id=42)
+        resp = CacheResponse(
+            txn_id=42,
+            data=0,
+            hit=False,
+            evicted=True,
+            evicted_dirty=True,
+            writeback_addr=0x100,
+            writeback_data=wb_data,
+        )
+        sb.push_expected(txn, resp)
+
+        assert 42 in sb.expected_writebacks
+        assert sb.expected_writebacks[42].addr == 0x100
+        assert sb.expected_writebacks[42].data == wb_data
+        assert not sb.all_writebacks_matched
+
+    def test_writeback_match_success(self):
+        """Correct writeback event should match without error."""
+        sb = OooScoreboard()
+        wb_data = b"\xAA\xBB\xCC\xDD" + b"\x00" * 60
+        txn = CacheTxn(CacheOp.READ, addr=0x400, size=4, txn_id=7)
+        resp = CacheResponse(
+            txn_id=7,
+            data=0,
+            hit=False,
+            evicted=True,
+            evicted_dirty=True,
+            writeback_addr=0x300,
+            writeback_data=wb_data,
+        )
+        sb.push_expected(txn, resp)
+        sb.compare_actual(resp)
+        sb.compare_writeback(WritebackEvent(txn_id=7, addr=0x300, data=wb_data))
+
+        assert sb.matched_writebacks == 1
+        assert sb.all_writebacks_matched
+
+    def test_writeback_addr_mismatch_detected(self):
+        """Writeback to wrong address should be caught."""
+        sb = OooScoreboard()
+        wb_data = b"\x11" * 64
+        txn = CacheTxn(CacheOp.READ, addr=0x800, size=4, txn_id=99)
+        resp = CacheResponse(
+            txn_id=99,
+            data=0,
+            hit=False,
+            evicted=True,
+            evicted_dirty=True,
+            writeback_addr=0x800,
+            writeback_data=wb_data,
+        )
+        sb.push_expected(txn, resp)
+
+        with pytest.raises(ScoreboardMismatch, match="writeback addr mismatch"):
+            sb.compare_writeback(WritebackEvent(txn_id=99, addr=0x900, data=wb_data))
+
+        assert sb.mismatched_writebacks == 1
+
+    def test_writeback_data_mismatch_detected(self):
+        """Corrupted writeback data should be caught."""
+        sb = OooScoreboard()
+        txn = CacheTxn(CacheOp.READ, addr=0x1000, size=4, txn_id=55)
+        resp = CacheResponse(
+            txn_id=55,
+            data=0,
+            hit=False,
+            evicted=True,
+            evicted_dirty=True,
+            writeback_addr=0x1000,
+            writeback_data=b"\x00" * 64,
+        )
+        sb.push_expected(txn, resp)
+
+        bad_data = bytearray(64)
+        bad_data[0] = 0xFF
+        with pytest.raises(ScoreboardMismatch, match="writeback data mismatch"):
+            sb.compare_writeback(WritebackEvent(txn_id=55, addr=0x1000, data=bytes(bad_data)))
+
+    def test_orphan_writeback_detected(self):
+        """Writeback with unknown txn_id should raise ScoreboardMismatch."""
+        sb = OooScoreboard()
+
+        with pytest.raises(ScoreboardMismatch, match="unexpected writeback"):
+            sb.compare_writeback(WritebackEvent(txn_id=777, addr=0x0, data=b""))
+
+        assert len(sb.orphan_writebacks) == 1
+
+    def test_writeback_interleaved_with_responses(self):
+        """Writebacks arriving interleaved with CPU responses should all match."""
+        sb = OooScoreboard()
+        wb1 = b"\x11" * 64
+        wb2 = b"\x22" * 64
+
+        txn1 = CacheTxn(CacheOp.WRITE, addr=0x040, size=4, data=0x11, mask=0xF, txn_id=1)
+        resp1 = CacheResponse(
+            txn_id=1, data=0, hit=False, evicted=True, evicted_dirty=True,
+            writeback_addr=0x000, writeback_data=wb1,
+        )
+        txn2 = CacheTxn(CacheOp.WRITE, addr=0x0C0, size=4, data=0x22, mask=0xF, txn_id=2)
+        resp2 = CacheResponse(
+            txn_id=2, data=0, hit=False, evicted=True, evicted_dirty=True,
+            writeback_addr=0x080, writeback_data=wb2,
+        )
+        sb.push_expected(txn1, resp1)
+        sb.push_expected(txn2, resp2)
+
+        sb.compare_actual(resp1)
+        sb.compare_writeback(WritebackEvent(txn_id=1, addr=0x000, data=wb1))
+        sb.compare_actual(resp2)
+        sb.compare_writeback(WritebackEvent(txn_id=2, addr=0x080, data=wb2))
+
+        assert sb.matched == 2
+        assert sb.matched_writebacks == 2
+        assert sb.is_empty
+        assert sb.all_writebacks_matched
+
+    def test_summary_includes_writeback_stats(self):
+        """Summary dict should include writeback-related counters."""
+        sb = OooScoreboard()
+        s = sb.summary()
+        assert "matched_writebacks" in s
+        assert "mismatched_writebacks" in s
+        assert "pending_writebacks" in s
+        assert "orphan_writebacks" in s
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from .reference_model import CacheParams, ReferenceCache
 from .regression_analysis import write_reports
 from .scoreboard import Scoreboard, ScoreboardMismatch
 from .transactions import CacheOp, CacheResponse, CacheTxn
+from .coverage_analyzer import CoverageHoleAnalyzer
 
 
 def run_core_regression(
@@ -53,6 +54,9 @@ def run_core_regression(
     }
     if report_dir is not None:
         write_reports(report_dir, summary)
+        analyzer = CoverageHoleAnalyzer(coverage)
+        analyzer.analyze()
+        analyzer.write_report(report_dir / "coverage_holes_attribution.md")
     return summary
 
 
@@ -197,6 +201,8 @@ def _run_enhanced_core_seed(seed: int, count: int, params: CacheParams) -> dict[
                 evicted_clean=(response.evicted and not response.evicted_dirty),
                 latency=latency,
                 same_set=same_set,
+                replacement_policy=params.replacement.value,
+                write_allocate=params.write_allocate,
             )
 
         except ScoreboardMismatch as exc:
@@ -282,6 +288,8 @@ def _run_named_stream(
                 evicted_clean=(response.evicted and not response.evicted_dirty),
                 latency=latency,
                 same_set=same_set,
+                replacement_policy=params.replacement.value,
+                write_allocate=params.write_allocate,
             )
 
         except ScoreboardMismatch as exc:
@@ -409,6 +417,8 @@ def _run_coverage_closure(params: CacheParams) -> dict[str, object]:
             evicted_clean=(response.evicted and not response.evicted_dirty),
             latency=10 if index % 3 == 0 else 1,
             same_set=same_set,
+            replacement_policy=params.replacement.value,
+            write_allocate=params.write_allocate,
         )
     return cov.summary()
 
@@ -420,6 +430,7 @@ def _run_fault_detection(params: CacheParams) -> dict[str, bool]:
         "dirty_writeback_corruption": _detect_dirty_writeback_corruption(),
         "response_order_swap": _detect_response_order_swap(params),
         "tag_compare_error": _detect_tag_compare_error(params),
+        "writeback_addr_corruption": _detect_writeback_addr_corruption(),
     }
 
 
@@ -541,6 +552,32 @@ def _detect_tag_compare_error(params: CacheParams) -> bool:
         actual = faulty_ref.access(txn)
         if index == 1:
             actual = FaultInjector.flip_tag_match(actual)
+        scoreboard.push_request(txn)
+        try:
+            scoreboard.compare_response(txn, actual)
+        except ScoreboardMismatch:
+            return True
+    return False
+
+
+def _detect_writeback_addr_corruption() -> bool:
+    """End-to-end fault detection: dirty eviction writeback address is wrong.
+    Scoreboard must detect the writeback_addr mismatch.
+
+    Models DUT writeback address generation fault (address mux stuck bit,
+    tag/set concatenation error) causing silent memory corruption at the
+    wrong physical address.
+    """
+    params = CacheParams(sets=1, ways=1, line_bytes=64)
+    good_ref = ReferenceCache(params)
+    faulty_ref = ReferenceCache(params)
+    scoreboard = Scoreboard(good_ref)
+    write = CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1)
+    evict = CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2)
+    for index, txn in enumerate([write, evict]):
+        actual = faulty_ref.access(txn)
+        if index == 1:
+            actual = FaultInjector.corrupt_writeback_addr(actual, offset=0x80)
         scoreboard.push_request(txn)
         try:
             scoreboard.compare_response(txn, actual)

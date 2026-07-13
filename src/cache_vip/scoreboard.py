@@ -38,6 +38,8 @@ class Scoreboard:
                 evicted_clean=(response.evicted and not response.evicted_dirty),
                 latency=latency,
                 same_set=same_set,
+                replacement_policy=self.reference.params.replacement.value,
+                write_allocate=self.reference.params.write_allocate,
             )
         return response
 

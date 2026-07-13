@@ -5,6 +5,10 @@ component matches expected vs actual responses by transaction ID. This models
 pipelined caches where a miss (long latency) may be overtaken by a later hit
 (short latency), so responses arrive out of request order.
 
+The OOO scoreboard also tracks a separate writeback event stream for
+verifying that dirty evictions generate correct writeback address/data at
+the memory interface, which may arrive interleaved with CPU responses.
+
 Integration points:
     >>> from cache_vip.ooo_scoreboard import OooScoreboard
     >>> from cache_vip.reference_model import ReferenceCache
@@ -22,6 +26,14 @@ from .transactions import CacheOp, CacheResponse, CacheTxn
 
 
 @dataclass
+class WritebackEvent:
+    """Expected or actual writeback event from dirty eviction."""
+    txn_id: int
+    addr: int
+    data: bytes
+
+
+@dataclass
 class OooScoreboard:
     """Out-of-order scoreboard matching responses by transaction ID.
 
@@ -29,6 +41,9 @@ class OooScoreboard:
     response arrives, it is matched against the expected entry with the same
     txn_id — regardless of insertion order. This enables verification of
     pipelined DUTs where responses may overtake each other.
+
+    Writeback events are tracked independently since they appear on the
+    memory side interface and may arrive interleaved with CPU responses.
     """
 
     pending: dict[int, tuple[CacheTxn, CacheResponse]] = field(default_factory=dict)
@@ -36,6 +51,10 @@ class OooScoreboard:
     mismatched: int = 0
     orphan: list[CacheResponse] = field(default_factory=list)
     timed_out: list[int] = field(default_factory=list)
+    expected_writebacks: dict[int, WritebackEvent] = field(default_factory=dict)
+    matched_writebacks: int = 0
+    mismatched_writebacks: int = 0
+    orphan_writebacks: list[WritebackEvent] = field(default_factory=list)
 
     def push_expected(self, txn: CacheTxn, response: CacheResponse) -> None:
         """Record an expected response indexed by txn_id."""
@@ -44,6 +63,12 @@ class OooScoreboard:
                 f"duplicate txn_id={txn.txn_id} already pending in OOO scoreboard"
             )
         self.pending[txn.txn_id] = (txn, response)
+        if response.evicted_dirty and response.writeback_addr is not None and response.writeback_data is not None:
+            self.expected_writebacks[txn.txn_id] = WritebackEvent(
+                txn_id=txn.txn_id,
+                addr=response.writeback_addr,
+                data=response.writeback_data,
+            )
 
     def compare_actual(self, actual: CacheResponse) -> None:
         """Match an actual response to its expected counterpart by txn_id.
@@ -61,6 +86,33 @@ class OooScoreboard:
         txn, expected = self.pending.pop(txn_id)
         self._check_fields(txn, expected, actual)
         self.matched += 1
+
+    def compare_writeback(self, actual: WritebackEvent) -> None:
+        """Match an actual writeback event to its expected counterpart.
+
+        Writebacks are matched by txn_id since each eviction originates
+        from a specific cache transaction.
+        """
+        if actual.txn_id not in self.expected_writebacks:
+            self.orphan_writebacks.append(actual)
+            self.mismatched_writebacks += 1
+            raise ScoreboardMismatch(
+                f"unexpected writeback for txn_id={actual.txn_id} "
+                f"(expected: {sorted(self.expected_writebacks.keys())})"
+            )
+        expected = self.expected_writebacks.pop(actual.txn_id)
+        if expected.addr != actual.addr:
+            self.mismatched_writebacks += 1
+            raise ScoreboardMismatch(
+                f"writeback addr mismatch txn_id={actual.txn_id}: "
+                f"expected 0x{expected.addr:x}, got 0x{actual.addr:x}"
+            )
+        if expected.data != actual.data:
+            self.mismatched_writebacks += 1
+            raise ScoreboardMismatch(
+                f"writeback data mismatch txn_id={actual.txn_id}"
+            )
+        self.matched_writebacks += 1
 
     def _check_fields(self, txn: CacheTxn, expected: CacheResponse, actual: CacheResponse) -> None:
         if actual.observes("hit") and expected.hit != actual.hit:
@@ -101,6 +153,10 @@ class OooScoreboard:
     def is_empty(self) -> bool:
         return len(self.pending) == 0
 
+    @property
+    def all_writebacks_matched(self) -> bool:
+        return len(self.expected_writebacks) == 0
+
     def summary(self) -> dict[str, object]:
         return {
             "matched": self.matched,
@@ -108,4 +164,8 @@ class OooScoreboard:
             "pending": len(self.pending),
             "orphan": len(self.orphan),
             "timed_out": len(self.timed_out),
+            "matched_writebacks": self.matched_writebacks,
+            "mismatched_writebacks": self.mismatched_writebacks,
+            "pending_writebacks": len(self.expected_writebacks),
+            "orphan_writebacks": len(self.orphan_writebacks),
         }

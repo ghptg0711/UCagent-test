@@ -11,7 +11,7 @@
 | 文件数 | 15+ 文件由 UCAgent 生成初版 | 全部文件经人工 review/重构 |
 | 缺陷总数 | 14 个记录缺陷 + 3 类能力边界 | 逐一修正或绕过 |
 | RTL 设计缺陷 | UCAgent 无法分析 | 人工定位 BUG-010/011/012 |
-| 当前可移植测试 | — | 77 passed；core coverage 100%；Real DUT coverage 待重跑；故障 5/5 经 ScoreboardMismatch 检出 |
+| 当前可移植测试 | — | 91 passed；core coverage 100% (19/19 required + 9/12 extended)；Real DUT coverage 待重跑；故障 6/6 经 ScoreboardMismatch 检出 |
 
 ## 二、逐模块对比表
 
@@ -37,6 +37,10 @@
 | 18 | 故障检测 `regression.py` | 5 类 fault detector | **定义式成立**:多个 detector 只比较"注入前后字段不同",不经过 DUT+monitor+scoreboard 端到端链路;`read_corruption` 直接拿 expected 翻转后和 expected 比 | 直接改写:重构为 `good_ref + faulty_ref + ScoreboardMismatch` 模式,fault 注入到 faulty_ref 的实际响应路径,Scoreboard 从 ScoreboardMismatch 检出;每个 detector 都模拟 DUT 级故障 | 本轮 P1.2 |
 | 19 | RTL 缺陷分析 `bug_tracker.md` | BUG-010/011 | 未覆盖 write-miss 数据丢失场景;AI 无法分析 RTL fill 状态机 | 人工审查:定位 BUG-012(write-miss 时 fill 只安装 memory data,未合并 CPU wdata/wmask);新增 Reference Model 定向测试验证正确行为 | 本轮 P1.3 |
 | 20 | CI/工程 `.github/workflows/` | 初始 3-job 框架 | real-dut job 只有 smoke test,无 artifact 上传;dut-contract job 测试深度不足;无 build manifest 溯源 | 直接改写:unit-tests 加回归报告 artifact;dut-contract 扩展为完整可移植套件 + coverage;real-dut 加 CRV、缺陷测试、coverage 生成、artifact 上传;build 脚本加版本校验和 manifest | 本轮 P1.4 |
+| 21 | 覆盖率模型 `coverage.py` | 基础 19 个单维度 bins | 缺乏 cross-coverage 深度,无法体现 size×mask、replacement×type 等交互场景覆盖 | 直接改写:新增 12 个 EXTENDED_BINS 交叉覆盖组,含 size×mask、replacement×type、access×latency、policy、address pattern 五类;扩展 summary() 输出 extended_coverage_percent | 本轮 P2.1 |
+| 22 | 故障注入 `faults.py` / `regression.py` | 5 类 fault detector | 缺少 writeback 地址类故障,无法验证 DUT 地址生成逻辑缺陷 | 直接改写:新增 corrupt_writeback_addr() 注入和 _detect_writeback_addr_corruption() 检测;故障总数 5→6,全部经 ScoreboardMismatch 端到端检出 | 本轮 P2.2 |
+| 23 | 边界测试 `test_edge_cases.py` | 17 个 edge case 测试 | 缺少跨线访问异常检测、多 set 驱逐一致性、LRU vs FIFO 行为差异、扩展覆盖率验证等高价值边界场景 | 直接改写:新增 TestCrossLineDetection、TestMultiSetEvictionConsistency、TestPolicyBehavioralDifference、TestExtendedCoverageBins 共 4 类 10 个新测试;总测试 78→91 | 本轮 P2.3 |
+| 24 | OOO Scoreboard `ooo_scoreboard.py` | 基础 txn_id 匹配 + 8 个测试 | 缺少独立 writeback 事件流跟踪,无法验证内存侧写回乱序和地址/数据错配 | 直接改写:新增 WritebackEvent 数据类、compare_writeback() 方法、expected_writebacks 字典、all_writebacks_matched 属性、writeback 统计;新增 8 个 writeback 测试 | 本轮 P2.4 |
 
 ## 三、Prompt Tuning 典型案例(指令微调记录)
 

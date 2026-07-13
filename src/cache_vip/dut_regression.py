@@ -57,5 +57,7 @@ class DUTRegressionRunner:
             ),
             latency=latency,
             same_set=same_set,
+            replacement_policy=params.replacement.value,
+            write_allocate=params.write_allocate,
         )
         return actual

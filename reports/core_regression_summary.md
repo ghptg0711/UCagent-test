@@ -15,6 +15,7 @@ Status: `PASS`
 - dirty_writeback_corruption: `detected`
 - response_order_swap: `detected`
 - tag_compare_error: `detected`
+- writeback_addr_corruption: `detected`
 
 ## Required Bin Counts
 
@@ -42,6 +43,5 @@ Status: `PASS`
 
 ## CRV
 
-- crv_seed_1: `300` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_2: `300` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_3: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_1: `200` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_2: `200` transactions, status `PASS`, coverage `100.0%`

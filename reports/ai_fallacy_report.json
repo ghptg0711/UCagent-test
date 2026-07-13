@@ -1,0 +1,1287 @@
+{
+  "scanned_files": [
+    "src\\cache_vip\\coverage.py",
+    "src\\cache_vip\\coverage_analyzer.py",
+    "src\\cache_vip\\cross_validation.py",
+    "src\\cache_vip\\dut_regression.py",
+    "src\\cache_vip\\fallacy_detector.py",
+    "src\\cache_vip\\faults.py",
+    "src\\cache_vip\\generator.py",
+    "src\\cache_vip\\memory_agent.py",
+    "src\\cache_vip\\ooo_scoreboard.py",
+    "src\\cache_vip\\oracle.py",
+    "src\\cache_vip\\prompt_bug_matrix.py",
+    "src\\cache_vip\\real_dut_adapter.py",
+    "src\\cache_vip\\real_dut_config.py",
+    "src\\cache_vip\\reference_model.py",
+    "src\\cache_vip\\regression.py",
+    "src\\cache_vip\\regression_analysis.py",
+    "src\\cache_vip\\rtl_trajectory.py",
+    "src\\cache_vip\\scoreboard.py",
+    "src\\cache_vip\\semantic_tracker.py",
+    "src\\cache_vip\\toffee_adapter.py",
+    "src\\cache_vip\\transactions.py",
+    "src\\cache_vip\\__init__.py",
+    "tests\\mock_dut.py",
+    "tests\\test_coverage_trend.py",
+    "tests\\test_directed_cases.py",
+    "tests\\test_dut_regression.py",
+    "tests\\test_dut_smoke.py",
+    "tests\\test_edge_cases.py",
+    "tests\\test_generator_scoreboard.py",
+    "tests\\test_memory_agent.py",
+    "tests\\test_ooo_scoreboard.py",
+    "tests\\test_real_dut_adapter_unit.py",
+    "tests\\test_real_dut_smoke.py",
+    "tests\\test_reference_model.py",
+    "tests\\test_regression.py",
+    "tests\\test_regression_oracle.py"
+  ],
+  "total_findings": 123,
+  "by_type": {
+    "CIRCULAR_REASONING": 1,
+    "SYNTHETIC_SAMPLING": 0,
+    "INFINITE_WAY": 0,
+    "ASYNC_TIMING": 2,
+    "BOUNDARY_MAGIC_NUMBER": 118,
+    "EVICTION_BLIND_SPOT": 0,
+    "WEAK_ASSERTION": 2
+  },
+  "by_severity": {
+    "HIGH": 1,
+    "MEDIUM": 122,
+    "LOW": 0
+  },
+  "findings": [
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\coverage.py",
+      "line_number": 63,
+      "column_number": 41,
+      "code_snippet": ")\n\n    def __init__(self, line_bytes: int = 64) -> None:\n        self.bins: Counter[str] = Counter()\n        self.line_bytes = line_bytes",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\cross_validation.py",
+      "line_number": 265,
+      "column_number": 48,
+      "code_snippet": "return txn\n        elif injection_type == InjectionType.ADDRESS_OFFSET:\n            return replace(txn, addr=txn.addr + 0x40)\n        elif injection_type == InjectionType.HIT_MISS_FLIP:\n            return txn",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\fallacy_detector.py",
+      "line_number": 62,
+      "column_number": 21,
+      "code_snippet": "class AIFallacyDetector:\n    MAGIC_NUMBERS = {64, 512, 4096, 8192}\n\n    def __init__(self) -> None:",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\fallacy_detector.py",
+      "line_number": 62,
+      "column_number": 25,
+      "code_snippet": "class AIFallacyDetector:\n    MAGIC_NUMBERS = {64, 512, 4096, 8192}\n\n    def __init__(self) -> None:",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 512 not tied to parameter",
+      "suggestion": "Replace 512 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\fallacy_detector.py",
+      "line_number": 62,
+      "column_number": 30,
+      "code_snippet": "class AIFallacyDetector:\n    MAGIC_NUMBERS = {64, 512, 4096, 8192}\n\n    def __init__(self) -> None:",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\fallacy_detector.py",
+      "line_number": 62,
+      "column_number": 36,
+      "code_snippet": "class AIFallacyDetector:\n    MAGIC_NUMBERS = {64, 512, 4096, 8192}\n\n    def __init__(self) -> None:",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\faults.py",
+      "line_number": 30,
+      "column_number": 70,
+      "code_snippet": "@staticmethod\n    def corrupt_writeback_addr(response: CacheResponse, offset: int = 0x40) -> CacheResponse:\n        \"\"\"Inject a writeback address error: the evicted line is written to\n        the wrong memory address.",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\generator.py",
+      "line_number": 94,
+      "column_number": 58,
+      "code_snippet": "return txns\n\n    def partial_write_cross_offset(self, base_addr: int = 0x2000) -> list[CacheTxn]:\n        \"\"\"Generate partial writes at several offsets followed by readback.\"\"\"\n        base = base_addr - (base_addr % self.params.line_bytes)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\generator.py",
+      "line_number": 211,
+      "column_number": 62,
+      "code_snippet": "return txns\n\n    def implication_stream(self, count: int, base_addr: int = 0x1000) -> list[CacheTxn]:\n        \"\"\"Generate a stream whose size and mask follow address constraints.\"\"\"\n        txns: list[CacheTxn] = []",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\generator.py",
+      "line_number": 75,
+      "column_number": 48,
+      "code_snippet": "def mixed_corner_stream(self) -> list[CacheTxn]:\n        txns = []\n        txns.extend(self.partial_write_sequence(0x1000))\n        txns.extend(self.replacement_sequence(3, dirty=True))\n        txns.extend(self.replacement_sequence(5, dirty=False))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\memory_agent.py",
+      "line_number": 105,
+      "column_number": 26,
+      "code_snippet": "default_latency: int = 2,\n        backpressure_pattern: list[bool] | None = None,\n        line_bytes: int = 64,\n    ) -> None:\n        self.dut = dut",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "ASYNC_TIMING",
+      "file_path": "src\\cache_vip\\real_dut_adapter.py",
+      "line_number": 73,
+      "column_number": 18,
+      "code_snippet": "reset_wrapper = self.signal_wrappers.get(\"reset\")\n        if reset_wrapper:\n            await reset_wrapper.write(1)\n            await self.wait_cycles(cycles)\n            await reset_wrapper.write(0)",
+      "severity": "MEDIUM",
+      "description": "Missing await on async reset/clock operation",
+      "suggestion": "Add await before reset/clock write/read operations"
+    },
+    {
+      "fallacy_type": "ASYNC_TIMING",
+      "file_path": "src\\cache_vip\\real_dut_adapter.py",
+      "line_number": 75,
+      "column_number": 18,
+      "code_snippet": "await reset_wrapper.write(1)\n            await self.wait_cycles(cycles)\n            await reset_wrapper.write(0)\n            await self.wait_cycles(2)",
+      "severity": "MEDIUM",
+      "description": "Missing await on async reset/clock operation",
+      "suggestion": "Add await before reset/clock write/read operations"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\real_dut_config.py",
+      "line_number": 7,
+      "column_number": 65,
+      "code_snippet": "# tools/RealCacheMain.scala fixes totalSize=32 KiB, ways=4. NutShell Cache.scala\n# defines LineSize=XLEN bytes (64 for the generated RV64 configuration).\nREAL_DUT_CACHE_PARAMS = CacheParams(sets=128, ways=4, line_bytes=64)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\reference_model.py",
+      "line_number": 18,
+      "column_number": 16,
+      "code_snippet": "@dataclass(frozen=True)\nclass CacheParams:\n    sets: int = 64\n    ways: int = 4\n    line_bytes: int = 64",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\reference_model.py",
+      "line_number": 20,
+      "column_number": 22,
+      "code_snippet": "sets: int = 64\n    ways: int = 4\n    line_bytes: int = 64\n    replacement: ReplacementPolicy = ReplacementPolicy.LRU\n    write_allocate: bool = True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 336,
+      "column_number": 38,
+      "code_snippet": "def _directed_stream(params: CacheParams) -> list[CacheTxn]:\n    gen = CacheGenerator(params, seed=101)\n    txns = gen.partial_write_sequence(0x1000)\n    txns.extend(gen.replacement_sequence(set_idx=1, dirty=True))\n    txns.extend(gen.replacement_sequence(set_idx=2, dirty=False))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 495,
+      "column_number": 52,
+      "code_snippet": "Models DUT writeback data path stuck bit causing memory corruption.\n    \"\"\"\n    params = CacheParams(sets=1, ways=1, line_bytes=64)\n    good_ref = ReferenceCache(params)\n    faulty_ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 500,
+      "column_number": 40,
+      "code_snippet": "scoreboard = Scoreboard(good_ref)\n    write = CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1)\n    evict = CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2)\n    for index, txn in enumerate([write, evict]):\n        actual = faulty_ref.access(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 571,
+      "column_number": 52,
+      "code_snippet": "wrong physical address.\n    \"\"\"\n    params = CacheParams(sets=1, ways=1, line_bytes=64)\n    good_ref = ReferenceCache(params)\n    faulty_ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 576,
+      "column_number": 40,
+      "code_snippet": "scoreboard = Scoreboard(good_ref)\n    write = CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1)\n    evict = CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2)\n    for index, txn in enumerate([write, evict]):\n        actual = faulty_ref.access(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 353,
+      "column_number": 21,
+      "code_snippet": "CacheTxn(\n                CacheOp.WRITE,\n                addr=0x2000,\n                size=1,\n                data=0x5A,",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\regression.py",
+      "line_number": 360,
+      "column_number": 40,
+      "code_snippet": "uncached=True,\n            ),\n            CacheTxn(CacheOp.READ, addr=0x2000, size=1, txn_id=10_003, uncached=True),\n        ]\n    )",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "src\\cache_vip\\rtl_trajectory.py",
+      "line_number": 99,
+      "column_number": 41,
+      "code_snippet": "elif next_state == \"WRITEBACK_DIRTY\":\n                info[\"reason\"] = \"Evicted line is dirty\"\n                info[\"writeback_addr\"] = 0x1000\n            elif next_state == \"SEND_RESP\":\n                info[\"reason\"] = \"Transaction complete\"",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 49,
+      "column_number": 38,
+      "code_snippet": "self._internal_memory: dict[int, int] = {}\n        self._internal_cache: dict[int, dict[str, Any]] = {}\n        self._cache_params = {\"sets\": 64, \"ways\": 4, \"line_bytes\": 64}\n        self._pending_response: dict[str, Any] | None = None",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 49,
+      "column_number": 67,
+      "code_snippet": "self._internal_memory: dict[int, int] = {}\n        self._internal_cache: dict[int, dict[str, Any]] = {}\n        self._cache_params = {\"sets\": 64, \"ways\": 4, \"line_bytes\": 64}\n        self._pending_response: dict[str, Any] | None = None",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 59,
+      "column_number": 78,
+      "code_snippet": "self.signals[\"io_cpu_req_valid\"] = Signal(\"io_cpu_req_valid\", 1, 0)\n        self.signals[\"io_cpu_req_ready\"] = Signal(\"io_cpu_req_ready\", 1, 1)\n        self.signals[\"io_cpu_req_bits_addr\"] = Signal(\"io_cpu_req_bits_addr\", 64, 0)\n        self.signals[\"io_cpu_req_bits_write\"] = Signal(\"io_cpu_req_bits_write\", 1, 0)\n        self.signals[\"io_cpu_req_bits_wdata\"] = Signal(\"io_cpu_req_bits_wdata\", 64, 0)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 61,
+      "column_number": 80,
+      "code_snippet": "self.signals[\"io_cpu_req_bits_addr\"] = Signal(\"io_cpu_req_bits_addr\", 64, 0)\n        self.signals[\"io_cpu_req_bits_write\"] = Signal(\"io_cpu_req_bits_write\", 1, 0)\n        self.signals[\"io_cpu_req_bits_wdata\"] = Signal(\"io_cpu_req_bits_wdata\", 64, 0)\n        self.signals[\"io_cpu_req_bits_wmask\"] = Signal(\"io_cpu_req_bits_wmask\", 8, 0)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 66,
+      "column_number": 80,
+      "code_snippet": "self.signals[\"io_cpu_resp_valid\"] = Signal(\"io_cpu_resp_valid\", 1, 0)\n        self.signals[\"io_cpu_resp_ready\"] = Signal(\"io_cpu_resp_ready\", 1, 1)\n        self.signals[\"io_cpu_resp_bits_data\"] = Signal(\"io_cpu_resp_bits_data\", 64, 0)\n\n        self.signals[\"io_mem_req_valid\"] = Signal(\"io_mem_req_valid\", 1, 0)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 70,
+      "column_number": 78,
+      "code_snippet": "self.signals[\"io_mem_req_valid\"] = Signal(\"io_mem_req_valid\", 1, 0)\n        self.signals[\"io_mem_req_ready\"] = Signal(\"io_mem_req_ready\", 1, 1)\n        self.signals[\"io_mem_req_bits_addr\"] = Signal(\"io_mem_req_bits_addr\", 64, 0)\n        self.signals[\"io_mem_req_bits_write\"] = Signal(\"io_mem_req_bits_write\", 1, 0)\n        self.signals[\"io_mem_req_bits_wdata\"] = Signal(\"io_mem_req_bits_wdata\", 512, 0)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 72,
+      "column_number": 80,
+      "code_snippet": "self.signals[\"io_mem_req_bits_addr\"] = Signal(\"io_mem_req_bits_addr\", 64, 0)\n        self.signals[\"io_mem_req_bits_write\"] = Signal(\"io_mem_req_bits_write\", 1, 0)\n        self.signals[\"io_mem_req_bits_wdata\"] = Signal(\"io_mem_req_bits_wdata\", 512, 0)\n        self.signals[\"io_mem_req_bits_wmask\"] = Signal(\"io_mem_req_bits_wmask\", 64, 0)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 512 not tied to parameter",
+      "suggestion": "Replace 512 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 73,
+      "column_number": 80,
+      "code_snippet": "self.signals[\"io_mem_req_bits_write\"] = Signal(\"io_mem_req_bits_write\", 1, 0)\n        self.signals[\"io_mem_req_bits_wdata\"] = Signal(\"io_mem_req_bits_wdata\", 512, 0)\n        self.signals[\"io_mem_req_bits_wmask\"] = Signal(\"io_mem_req_bits_wmask\", 64, 0)\n\n        self.signals[\"io_mem_resp_valid\"] = Signal(\"io_mem_resp_valid\", 1, 0)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\mock_dut.py",
+      "line_number": 77,
+      "column_number": 80,
+      "code_snippet": "self.signals[\"io_mem_resp_valid\"] = Signal(\"io_mem_resp_valid\", 1, 0)\n        self.signals[\"io_mem_resp_ready\"] = Signal(\"io_mem_resp_ready\", 1, 1)\n        self.signals[\"io_mem_resp_bits_data\"] = Signal(\"io_mem_resp_bits_data\", 512, 0)\n\n    def __getattr__(self, name: str) -> Signal:",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 512 not tied to parameter",
+      "suggestion": "Replace 512 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_coverage_trend.py",
+      "line_number": 48,
+      "column_number": 44,
+      "code_snippet": "def test_large_scale_regression_detects_real_same_set_revisits() -> None:\n    params = CacheParams(sets=4, line_bytes=64)\n    visited_sets: set[int] = set()",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_coverage_trend.py",
+      "line_number": 52,
+      "column_number": 32,
+      "code_snippet": "assert _is_same_set_revisit(0x00, params, visited_sets) is False\n    assert _is_same_set_revisit(0x40, params, visited_sets) is False\n    assert _is_same_set_revisit(0x100, params, visited_sets) is True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 376,
+      "column_number": 21,
+      "code_snippet": "ref = ReferenceCache(params)\n\n        write_addr = 0x40\n        write_data = 0x1122334455667788",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 138,
+      "column_number": 46,
+      "code_snippet": "params = CacheParams()\n        gen = CacheGenerator(params, seed=42)\n        txns = gen.partial_write_cross_offset(0x2000)\n        result = _run_stream(txns, params)\n        assert result[\"status\"] == \"PASS\", f\"Cross-offset partial write failed: {result}\"",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 117,
+      "column_number": 56,
+      "code_snippet": "def test_lru_evicts_oldest(self):\n        \"\"\"Verify LRU evicts the least recently used way.\"\"\"\n        params = CacheParams(sets=1, ways=2, line_bytes=64)\n        ref = ReferenceCache(params)\n        # Fill both ways",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 186,
+      "column_number": 56,
+      "code_snippet": "def test_fifo_replacement(self):\n        \"\"\"Test FIFO replacement policy.\"\"\"\n        params = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.FIFO)\n        ref = ReferenceCache(params)\n        addr_0 = 0x0000",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 213,
+      "column_number": 56,
+      "code_snippet": "def test_random_replacement_runs(self):\n        \"\"\"Test random replacement policy runs without errors.\"\"\"\n        params = CacheParams(sets=4, ways=2, line_bytes=64, replacement=ReplacementPolicy.RANDOM)\n        gen = CacheGenerator(params, seed=200)\n        txns = gen.random_stream(100)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 223,
+      "column_number": 56,
+      "code_snippet": "def test_no_write_allocate(self):\n        \"\"\"Test no-write-allocate policy: write miss goes directly to memory.\"\"\"\n        params = CacheParams(sets=1, ways=2, line_bytes=64, write_allocate=False)\n        ref = ReferenceCache(params)\n        # Write miss - should go to memory, not allocate",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 240,
+      "column_number": 33,
+      "code_snippet": "\"\"\"Test ScriptedMemoryAgent with configurable latency.\"\"\"\n        agent = ScriptedMemoryAgent(default_latency=3)\n        req = MemoryRequest(addr=0x1000, size=8, txn_id=1)\n        accepted = agent.accept(req)\n        assert accepted is True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 299,
+      "column_number": 48,
+      "code_snippet": "await agent.handle_writeback(0x1000, data)\n            assert len(agent.writeback_log) == 1\n            assert agent.writeback_log[0][0] == 0x1000\n\n        asyncio.run(_test())",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 313,
+      "column_number": 56,
+      "code_snippet": "We verify the reference model implements correct LRU semantics.\n        \"\"\"\n        params = CacheParams(sets=1, ways=4, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 318,
+      "column_number": 25,
+      "code_snippet": "# Fill all 4 ways in set 0\n        for way in range(4):\n            addr = way * 64  # same set (set 0), different tags\n            ref.access(CacheTxn(CacheOp.READ, addr=addr, size=8, txn_id=way + 1))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 342,
+      "column_number": 56,
+      "code_snippet": "writeback -> fill -> respond cycle.\n        \"\"\"\n        params = CacheParams(sets=1, ways=1, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 373,
+      "column_number": 56,
+      "code_snippet": "the pending CPU write would lose the write data.\n        \"\"\"\n        params = CacheParams(sets=1, ways=1, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 296,
+      "column_number": 31,
+      "code_snippet": "agent = ToffeeMemoryAgent(dut, sm)\n            # Manual writeback\n            data = bytes(range(64))\n            await agent.handle_writeback(0x1000, data)\n            assert len(agent.writeback_log) == 1",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 297,
+      "column_number": 41,
+      "code_snippet": "# Manual writeback\n            data = bytes(range(64))\n            await agent.handle_writeback(0x1000, data)\n            assert len(agent.writeback_log) == 1\n            assert agent.writeback_log[0][0] == 0x1000",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 324,
+      "column_number": 47,
+      "code_snippet": "# True LRU order (least to most recent): 2, 3, 1, 0\n        ref.access(CacheTxn(CacheOp.READ, addr=0, size=8, txn_id=10))  # way 0\n        ref.access(CacheTxn(CacheOp.READ, addr=64, size=8, txn_id=11))  # way 1\n        ref.access(CacheTxn(CacheOp.READ, addr=0, size=8, txn_id=12))  # way 0 again",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_directed_cases.py",
+      "line_number": 351,
+      "column_number": 54,
+      "code_snippet": "# Read from addr 0x40 -> miss, must evict dirty way 0, writeback, then fill\n        resp = ref.access(CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2))\n\n        # Reference model should complete successfully",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_dut_smoke.py",
+      "line_number": 50,
+      "column_number": 41,
+      "code_snippet": "_dut, adapter = setup_dut\n\n    txn = CacheTxn(op=CacheOp.READ, addr=0x1000, size=8, txn_id=1)\n    await adapter.drive_cpu_request(txn)\n    resp = await adapter.sample_cpu_response()",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_dut_smoke.py",
+      "line_number": 63,
+      "column_number": 48,
+      "code_snippet": "write_data = 0x1122334455667788\n    write_txn = CacheTxn(op=CacheOp.WRITE, addr=0x2000, size=8, data=write_data, txn_id=1)\n    await adapter.drive_cpu_request(write_txn)\n    await adapter.sample_cpu_response()",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_dut_smoke.py",
+      "line_number": 67,
+      "column_number": 46,
+      "code_snippet": "await adapter.sample_cpu_response()\n\n    read_txn = CacheTxn(op=CacheOp.READ, addr=0x2000, size=8, txn_id=2)\n    await adapter.drive_cpu_request(read_txn)\n    resp = await adapter.sample_cpu_response()",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "CIRCULAR_REASONING",
+      "file_path": "tests\\test_dut_smoke.py",
+      "line_number": 42,
+      "column_number": 22,
+      "code_snippet": "await adapter.reset(cycles=10)\n\n    reset_val = await dut.signals[\"reset\"].read()\n    assert reset_val == 0, \"Reset should be deasserted after reset sequence\"",
+      "severity": "HIGH",
+      "description": "Reference Model may be calling DUT internal signals",
+      "suggestion": "Ensure Reference Model is completely independent of DUT implementation"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 245,
+      "column_number": 20,
+      "code_snippet": "params = CacheParams(sets=64, ways=4, line_bytes=64)\n        ref = ReferenceCache(params)\n        base_addr = 0x1000\n        set_stride = params.sets * params.line_bytes",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 195,
+      "column_number": 28,
+      "code_snippet": "base = 0x40000\n        txns: list[CacheTxn] = []\n        for offset in range(64):\n            txns.append(gen._make(CacheOp.WRITE, base + offset, 1, data=offset + 1, mask=0x1))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 198,
+      "column_number": 28,
+      "code_snippet": "txns.append(gen._make(CacheOp.WRITE, base + offset, 1, data=offset + 1, mask=0x1))\n\n        for offset in range(64):\n            txns.append(gen._make(CacheOp.READ, base + offset, 1))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 281,
+      "column_number": 33,
+      "code_snippet": "assert resp.hit is True\n\n        new_addr = params.ways * 64\n        replace_resp = ref.access(\n            CacheTxn(CacheOp.WRITE, new_addr, 8, data=0xBEEF, mask=0xFF, txn_id=400)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 303,
+      "column_number": 31,
+      "code_snippet": "base = 0x50000\n        txns: list[CacheTxn] = []\n        for offset in range(0, 64, 8):\n            txns.append(\n                gen._make(CacheOp.WRITE, base + offset, 8, data=offset * 0x11223344, mask=0xFF)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 308,
+      "column_number": 31,
+      "code_snippet": ")\n\n        for offset in range(0, 64, 8):\n            txns.append(gen._make(CacheOp.READ, base + offset, 8))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 339,
+      "column_number": 44,
+      "code_snippet": "# Write some data\n        txn_write = CacheTxn(CacheOp.WRITE, 0x1000, 8, data=0xDEADBEEF, mask=0xFF, txn_id=1)\n        resp = ref.access(txn_write)\n        assert resp.data == 0",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 344,
+      "column_number": 43,
+      "code_snippet": "# Read back - should be hit\n        txn_read1 = CacheTxn(CacheOp.READ, 0x1000, 8, txn_id=2)\n        resp = ref.access(txn_read1)\n        assert resp.hit is True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 352,
+      "column_number": 43,
+      "code_snippet": "ref2 = ReferenceCache(params)\n        # Memory should still have the data (reference model memory is separate)\n        txn_read2 = CacheTxn(CacheOp.READ, 0x1000, 8, txn_id=3)\n        resp2 = ref2.access(txn_read2)\n        assert resp2.hit is False  # Should be miss after reset",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 92,
+      "column_number": 56,
+      "code_snippet": "def test_fill_all_ways_then_evict(self):\n        \"\"\"Fill all ways of a set, then access a new tag to force eviction.\"\"\"\n        params = CacheParams(sets=1, ways=4, line_bytes=64)\n        gen = CacheGenerator(params, seed=42)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 97,
+      "column_number": 25,
+      "code_snippet": "txns: list[CacheTxn] = []\n        for way in range(4):\n            addr = way * 64\n            txns.append(gen._make(CacheOp.WRITE, addr, 8, data=way + 1, mask=0xFF))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 109,
+      "column_number": 56,
+      "code_snippet": "def test_all_ways_dirty_then_clean_mix(self):\n        \"\"\"Mix of dirty and clean lines to test replacement selection.\"\"\"\n        params = CacheParams(sets=1, ways=4, line_bytes=64)\n        gen = CacheGenerator(params, seed=99)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 114,
+      "column_number": 25,
+      "code_snippet": "txns: list[CacheTxn] = []\n        for way in range(2):\n            addr = way * 64\n            txns.append(gen._make(CacheOp.WRITE, addr, 8, data=way + 100, mask=0xFF))\n        for way in range(2, 4):",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 117,
+      "column_number": 25,
+      "code_snippet": "txns.append(gen._make(CacheOp.WRITE, addr, 8, data=way + 100, mask=0xFF))\n        for way in range(2, 4):\n            addr = way * 64\n            txns.append(gen._make(CacheOp.READ, addr, 8))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 210,
+      "column_number": 56,
+      "code_snippet": "def test_continuous_replacement(self):\n        \"\"\"Continuously access different tags in the same set, forcing many evictions.\"\"\"\n        params = CacheParams(sets=1, ways=2, line_bytes=64)\n        gen = CacheGenerator(params, seed=333)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 215,
+      "column_number": 25,
+      "code_snippet": "txns: list[CacheTxn] = []\n        for tag in range(20):\n            addr = tag * 64\n            txns.append(gen._make(CacheOp.WRITE, addr, 4, data=tag, mask=0xF))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 224,
+      "column_number": 56,
+      "code_snippet": "def test_alternating_two_tags(self):\n        \"\"\"Alternate between two tags that always miss (fully associative 1-way).\"\"\"\n        params = CacheParams(sets=1, ways=1, line_bytes=64)\n        gen = CacheGenerator(params, seed=555)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 229,
+      "column_number": 29,
+      "code_snippet": "txns: list[CacheTxn] = []\n        for i in range(20):\n            addr = (i % 2) * 64\n            txns.append(gen._make(CacheOp.READ, addr, 4))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 243,
+      "column_number": 34,
+      "code_snippet": "eviction/fill sequence is immediately followed by an unrelated request.\n        \"\"\"\n        params = CacheParams(sets=64, ways=4, line_bytes=64)\n        ref = ReferenceCache(params)\n        base_addr = 0x1000",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 243,
+      "column_number": 57,
+      "code_snippet": "eviction/fill sequence is immediately followed by an unrelated request.\n        \"\"\"\n        params = CacheParams(sets=64, ways=4, line_bytes=64)\n        ref = ReferenceCache(params)\n        base_addr = 0x1000",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 270,
+      "column_number": 56,
+      "code_snippet": "def test_lru_counter_saturation(self):\n        \"\"\"LRU metadata remains correct after many repeated hot-line accesses.\"\"\"\n        params = CacheParams(sets=1, ways=4, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 359,
+      "column_number": 56,
+      "code_snippet": "def test_reset_evicts_all_dirty(self):\n        \"\"\"After filling cache with dirty data, reset clears everything.\"\"\"\n        params = CacheParams(sets=2, ways=2, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 380,
+      "column_number": 56,
+      "code_snippet": "def test_same_tag_different_sets(self):\n        \"\"\"Same tag in different sets should not conflict.\"\"\"\n        params = CacheParams(sets=4, ways=2, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 384,
+      "column_number": 23,
+      "code_snippet": "for s in range(4):\n            addr = s * 64  # tag 0, set s\n            txn = CacheTxn(CacheOp.WRITE, addr, 4, data=s + 1, mask=0xF, txn_id=s)\n            ref.access(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 389,
+      "column_number": 23,
+      "code_snippet": "for s in range(4):\n            addr = s * 64\n            txn = CacheTxn(CacheOp.READ, addr, 4, txn_id=100 + s)\n            resp = ref.access(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 400,
+      "column_number": 56,
+      "code_snippet": "def test_fifo_ordering(self):\n        \"\"\"Verify FIFO replacement follows insertion order, not access order.\"\"\"\n        params = CacheParams(sets=1, ways=3, line_bytes=64, replacement=ReplacementPolicy.FIFO)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 405,
+      "column_number": 25,
+      "code_snippet": "# Fill 3 ways in order: 0, 1, 2\n        for tag in range(3):\n            addr = tag * 64\n            txn = CacheTxn(CacheOp.WRITE, addr, 4, data=tag + 10, mask=0xF, txn_id=tag)\n            ref.access(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 416,
+      "column_number": 41,
+      "code_snippet": "# Access tag 3 - should evict tag 0 (first in), not tag 1\n        txn = CacheTxn(CacheOp.READ, 3 * 64, 4, txn_id=20)\n        resp = ref.access(txn)\n        assert resp.evicted_dirty is True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 421,
+      "column_number": 41,
+      "code_snippet": "# Tag 1 and 2 should still be in cache\n        txn = CacheTxn(CacheOp.READ, 1 * 64, 4, txn_id=21)\n        resp = ref.access(txn)\n        assert resp.hit is True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 425,
+      "column_number": 41,
+      "code_snippet": "assert resp.hit is True\n\n        txn = CacheTxn(CacheOp.READ, 2 * 64, 4, txn_id=22)\n        resp = ref.access(txn)\n        assert resp.hit is True",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 430,
+      "column_number": 41,
+      "code_snippet": "# Tag 0 should be evicted\n        txn = CacheTxn(CacheOp.READ, 0 * 64, 4, txn_id=23)\n        resp = ref.access(txn)\n        assert resp.hit is False",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 438,
+      "column_number": 56,
+      "code_snippet": "def test_no_write_allocate_read_then_write(self):\n        \"\"\"Read miss allocates line, write hit works, write miss doesn't allocate.\"\"\"\n        params = CacheParams(sets=1, ways=2, line_bytes=64, write_allocate=False)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 452,
+      "column_number": 42,
+      "code_snippet": "# Write miss to different tag - should NOT allocate\n        txn = CacheTxn(CacheOp.WRITE, 2 * 64, 4, data=42, mask=0xF, txn_id=3)\n        resp = ref.access(txn)\n        assert resp.hit is False",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 522,
+      "column_number": 56,
+      "code_snippet": "def test_eviction_in_one_set_does_not_affect_another(self):\n        \"\"\"Evicting a line in set N must not modify lines in set M.\"\"\"\n        params = CacheParams(sets=4, ways=2, line_bytes=64)\n        ref = ReferenceCache(params)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 553,
+      "column_number": 60,
+      "code_snippet": "must evict different victims.\n        \"\"\"\n        params_lru = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.LRU)\n        params_fifo = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.FIFO)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 554,
+      "column_number": 61,
+      "code_snippet": "\"\"\"\n        params_lru = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.LRU)\n        params_fifo = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.FIFO)\n\n        ref_lru = ReferenceCache(params_lru)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 560,
+      "column_number": 47,
+      "code_snippet": "ref_lru.access(CacheTxn(CacheOp.WRITE, 0x00, 4, data=0xAA, mask=0xF, txn_id=1))\n        ref_lru.access(CacheTxn(CacheOp.WRITE, 0x40, 4, data=0xBB, mask=0xF, txn_id=2))\n        ref_lru.access(CacheTxn(CacheOp.READ, 0x00, 4, txn_id=3))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 564,
+      "column_number": 48,
+      "code_snippet": "ref_fifo.access(CacheTxn(CacheOp.WRITE, 0x00, 4, data=0xAA, mask=0xF, txn_id=1))\n        ref_fifo.access(CacheTxn(CacheOp.WRITE, 0x40, 4, data=0xBB, mask=0xF, txn_id=2))\n        ref_fifo.access(CacheTxn(CacheOp.READ, 0x00, 4, txn_id=3))",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 583,
+      "column_number": 56,
+      "code_snippet": "def test_extended_coverage_samples_cross_bins(self):\n        \"\"\"Extended cross-coverage bins must be populated by directed traffic.\"\"\"\n        params = CacheParams(sets=2, ways=2, line_bytes=64, replacement=ReplacementPolicy.LRU)\n        ref = ReferenceCache(params)\n        cov = Coverage(line_bytes=params.line_bytes)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 591,
+      "column_number": 36,
+      "code_snippet": "CacheTxn(CacheOp.READ, 0x000, 4, txn_id=2),\n            CacheTxn(CacheOp.WRITE, 0x008, 4, data=0xABCD, mask=0b0101, txn_id=3),\n            CacheTxn(CacheOp.WRITE, 0x040, 8, data=0x11223344, mask=0xFF, txn_id=4),\n            CacheTxn(CacheOp.READ, 0x080, 8, txn_id=5),\n            CacheTxn(CacheOp.WRITE, 0x000, 1, data=0xFF, mask=0x1, txn_id=6),",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 101,
+      "column_number": 48,
+      "code_snippet": "# Access tag 4 to evict the LRU (tag 0)\n        txns.append(gen._make(CacheOp.READ, 4 * 64, 8))\n\n        sb = _run_txns(txns, params, mark_same_set=True)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 121,
+      "column_number": 48,
+      "code_snippet": "# Evict one (clean or dirty?)\n        txns.append(gen._make(CacheOp.READ, 4 * 64, 8))\n\n        sb = _run_txns(txns, params, mark_same_set=True)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 364,
+      "column_number": 37,
+      "code_snippet": "for s in range(2):\n            for w in range(2):\n                addr = (s * 2 + w) * 64\n                txn = CacheTxn(CacheOp.WRITE, addr, 4, data=s * 10 + w, mask=0xF, txn_id=s * 2 + w)\n                ref.access(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 274,
+      "column_number": 53,
+      "code_snippet": "for way in range(params.ways):\n            ref.access(CacheTxn(CacheOp.WRITE, way * 64, 8, data=way, mask=0xFF, txn_id=way))\n\n        hot_addr = 0",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_generator_scoreboard.py",
+      "line_number": 95,
+      "column_number": 52,
+      "code_snippet": "def test_directed_stream_reaches_required_core_coverage():\n    params = CacheParams(sets=4, ways=2, line_bytes=64)\n    sb = Scoreboard(reference=ReferenceCache(params))\n    gen = CacheGenerator(params, seed=19)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_generator_scoreboard.py",
+      "line_number": 44,
+      "column_number": 37,
+      "code_snippet": "sb = Scoreboard()\n    txns = [\n        CacheTxn(CacheOp.WRITE, addr=0x40, size=4, data=0x12345678, txn_id=1),\n        CacheTxn(CacheOp.READ, addr=0x40, size=4, txn_id=2),\n    ]",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_generator_scoreboard.py",
+      "line_number": 45,
+      "column_number": 36,
+      "code_snippet": "txns = [\n        CacheTxn(CacheOp.WRITE, addr=0x40, size=4, data=0x12345678, txn_id=1),\n        CacheTxn(CacheOp.READ, addr=0x40, size=4, txn_id=2),\n    ]\n    actual = [sb.push_request(txn) for txn in txns]",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 157,
+      "column_number": 28,
+      "code_snippet": "\"\"\"Writeback to wrong address should be caught.\"\"\"\n        sb = OooScoreboard()\n        wb_data = b\"\\x11\" * 64\n        txn = CacheTxn(CacheOp.READ, addr=0x800, size=4, txn_id=99)\n        resp = CacheResponse(",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 190,
+      "column_number": 29,
+      "code_snippet": "sb.push_expected(txn, resp)\n\n        bad_data = bytearray(64)\n        bad_data[0] = 0xFF\n        with pytest.raises(ScoreboardMismatch, match=\"writeback data mismatch\"):",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 207,
+      "column_number": 24,
+      "code_snippet": "\"\"\"Writebacks arriving interleaved with CPU responses should all match.\"\"\"\n        sb = OooScoreboard()\n        wb1 = b\"\\x11\" * 64\n        wb2 = b\"\\x22\" * 64",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 208,
+      "column_number": 24,
+      "code_snippet": "sb = OooScoreboard()\n        wb1 = b\"\\x11\" * 64\n        wb2 = b\"\\x22\" * 64\n\n        txn1 = CacheTxn(CacheOp.WRITE, addr=0x040, size=4, data=0x11, mask=0xF, txn_id=1)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 116,
+      "column_number": 42,
+      "code_snippet": "sb = OooScoreboard()\n        wb_data = bytes([0x11, 0x22, 0x33, 0x44] + [0] * 60)\n        txn = CacheTxn(CacheOp.READ, addr=0x200, size=4, txn_id=42)\n        resp = CacheResponse(\n            txn_id=42,",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 512 not tied to parameter",
+      "suggestion": "Replace 512 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 178,
+      "column_number": 42,
+      "code_snippet": "\"\"\"Corrupted writeback data should be caught.\"\"\"\n        sb = OooScoreboard()\n        txn = CacheTxn(CacheOp.READ, addr=0x1000, size=4, txn_id=55)\n        resp = CacheResponse(\n            txn_id=55,",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 185,
+      "column_number": 27,
+      "code_snippet": "evicted=True,\n            evicted_dirty=True,\n            writeback_addr=0x1000,\n            writeback_data=b\"\\x00\" * 64,\n        )",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 210,
+      "column_number": 44,
+      "code_snippet": "wb2 = b\"\\x22\" * 64\n\n        txn1 = CacheTxn(CacheOp.WRITE, addr=0x040, size=4, data=0x11, mask=0xF, txn_id=1)\n        resp1 = CacheResponse(\n            txn_id=1, data=0, hit=False, evicted=True, evicted_dirty=True,",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 31,
+      "column_number": 41,
+      "code_snippet": "sb = OooScoreboard()\n        txns = [\n            CacheTxn(CacheOp.WRITE, addr=0x200, size=4, data=0x1111, mask=0xF, txn_id=1),\n            CacheTxn(CacheOp.READ, addr=0x300, size=4, txn_id=2),\n            CacheTxn(CacheOp.READ, addr=0x400, size=4, txn_id=3),",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 512 not tied to parameter",
+      "suggestion": "Replace 512 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 186,
+      "column_number": 37,
+      "code_snippet": "evicted_dirty=True,\n            writeback_addr=0x1000,\n            writeback_data=b\"\\x00\" * 64,\n        )\n        sb.push_expected(txn, resp)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_ooo_scoreboard.py",
+      "line_number": 193,
+      "column_number": 64,
+      "code_snippet": "bad_data[0] = 0xFF\n        with pytest.raises(ScoreboardMismatch, match=\"writeback data mismatch\"):\n            sb.compare_writeback(WritebackEvent(txn_id=55, addr=0x1000, data=bytes(bad_data)))\n\n    def test_orphan_writeback_detected(self):",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_adapter_unit.py",
+      "line_number": 153,
+      "column_number": 45,
+      "code_snippet": "assert adapter._load_word(0x40) == 0x1122334455667788\n    assert adapter._mem_response\n    assert adapter.bus_events[-1][\"addr\"] == 0x40\n\n    await _service_test_bus(adapter)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_adapter_unit.py",
+      "line_number": 49,
+      "column_number": 38,
+      "code_snippet": "\"resp_data\": FakeSignal(0x0123456789ABCDEF),\n    }\n    txn = CacheTxn(CacheOp.READ, addr=0x1000, size=8, txn_id=7)\n    adapter._pending_txns[txn.txn_id] = txn\n    adapter._txn_event_start[txn.txn_id] = 0",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_adapter_unit.py",
+      "line_number": 117,
+      "column_number": 31,
+      "code_snippet": "adapter.dut_wrapper.signal_wrappers = {\n        \"req_valid\": FakeSignal(1),\n        \"req_addr\": FakeSignal(0x40),\n        \"req_cmd\": FakeSignal(cmd),\n        \"req_data\": FakeSignal(0x1122334455667788),",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_adapter_unit.py",
+      "line_number": 151,
+      "column_number": 30,
+      "code_snippet": "await _service_test_bus(adapter)\n\n    assert adapter._load_word(0x40) == 0x1122334455667788\n    assert adapter._mem_response\n    assert adapter.bus_events[-1][\"addr\"] == 0x40",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_adapter_unit.py",
+      "line_number": 165,
+      "column_number": 28,
+      "code_snippet": "_install_bus_signals(adapter, cmd=SIMPLEBUS_READ_BURST)\n    for beat in range(8):\n        adapter._store_word(0x40 + beat * 8, beat + 1, 0xFF)\n\n    await _service_test_bus(adapter)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 64 not tied to parameter",
+      "suggestion": "Replace 64 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_smoke.py",
+      "line_number": 63,
+      "column_number": 41,
+      "code_snippet": "_adapter, runner = setup_real_dut\n\n    txn = CacheTxn(op=CacheOp.READ, addr=0x1000, size=8, txn_id=1)\n    resp = await runner.execute(txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 4096 not tied to parameter",
+      "suggestion": "Replace 4096 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_smoke.py",
+      "line_number": 75,
+      "column_number": 48,
+      "code_snippet": "write_data = 0x1122334455667788\n    write_txn = CacheTxn(op=CacheOp.WRITE, addr=0x2000, size=8, data=write_data, txn_id=1)\n    await runner.execute(write_txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "BOUNDARY_MAGIC_NUMBER",
+      "file_path": "tests\\test_real_dut_smoke.py",
+      "line_number": 78,
+      "column_number": 46,
+      "code_snippet": "await runner.execute(write_txn)\n\n    read_txn = CacheTxn(op=CacheOp.READ, addr=0x2000, size=8, txn_id=2)\n    resp = await runner.execute(read_txn)",
+      "severity": "MEDIUM",
+      "description": "Hardcoded magic number 8192 not tied to parameter",
+      "suggestion": "Replace 8192 with parameter reference (e.g., line_bytes)"
+    },
+    {
+      "fallacy_type": "WEAK_ASSERTION",
+      "file_path": "tests\\test_edge_cases.py",
+      "line_number": 374,
+      "column_number": 8,
+      "code_snippet": "all_dirty = False\n                    break\n        assert all_dirty, \"All valid lines should be dirty\"",
+      "severity": "MEDIUM",
+      "description": "Weak assertion: assert all_dirty",
+      "suggestion": "Replace with explicit boolean comparison"
+    },
+    {
+      "fallacy_type": "WEAK_ASSERTION",
+      "file_path": "tests\\test_generator_scoreboard.py",
+      "line_number": 21,
+      "column_number": 4,
+      "code_snippet": "sb.compare_response(txn, expected)\n\n    assert saw_dirty_eviction",
+      "severity": "MEDIUM",
+      "description": "Weak assertion: assert saw_dirty_eviction",
+      "suggestion": "Replace with explicit boolean comparison"
+    }
+  ]
+}

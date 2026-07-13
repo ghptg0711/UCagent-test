@@ -27,6 +27,19 @@ class FaultInjector:
         return replace(response, writeback_data=bytes(data))
 
     @staticmethod
+    def corrupt_writeback_addr(response: CacheResponse, offset: int = 0x40) -> CacheResponse:
+        """Inject a writeback address error: the evicted line is written to
+        the wrong memory address.
+
+        Models a hardware bug in the writeback address generation logic
+        (e.g., address mux stuck bit, tag/set concatenation error) causing
+        silent memory corruption at an incorrect location.
+        """
+        if response.writeback_addr is None:
+            return response
+        return replace(response, writeback_addr=response.writeback_addr ^ offset)
+
+    @staticmethod
     def swap_order(responses: list[CacheResponse]) -> list[CacheResponse]:
         if len(responses) < 2:
             return responses

@@ -1,0 +1,236 @@
+{
+  "total_prompt_iterations": 8,
+  "total_bugs_detected": 6,
+  "total_causal_links": 6,
+  "prompt_iterations": [
+    {
+      "version": "v1",
+      "date": "2026-06-20",
+      "key_changes": [
+        "Initial prompt: 'Generate a complete Cache verification environment'",
+        "Focus on basic generator, scoreboard, reference model"
+      ],
+      "verification_space_expansion": [
+        "Basic read/write operations",
+        "Simple hit/miss detection",
+        "Basic LRU replacement"
+      ],
+      "bugs_detected": [],
+      "measurable_improvement": "Framework established, 60% core coverage",
+      "impact_score": 30
+    },
+    {
+      "version": "v2",
+      "date": "2026-06-22",
+      "key_changes": [
+        "Added: 'Include CRV with address concentration to trigger replacement'",
+        "Added: 'Implement directed sequences for partial writes and line boundaries'"
+      ],
+      "verification_space_expansion": [
+        "Same-set access patterns",
+        "Partial write sequences",
+        "Line boundary stress",
+        "Replacement pressure scenarios"
+      ],
+      "bugs_detected": [],
+      "measurable_improvement": "Coverage increased from 60% to 85%",
+      "impact_score": 45
+    },
+    {
+      "version": "v3",
+      "date": "2026-06-24",
+      "key_changes": [
+        "Critical: 'Implement Scoreboard using independent verification methodology'",
+        "Critical: 'Track all WRITE operations and verify with independent oracle'"
+      ],
+      "verification_space_expansion": [
+        "Independent reference model verification",
+        "Write data tracking with mask awareness",
+        "Eviction-aware read validation"
+      ],
+      "bugs_detected": [
+        "BUG-002 (Scoreboard circular reasoning)"
+      ],
+      "measurable_improvement": "Scoreboard now detects 4 classes of faults",
+      "impact_score": 85
+    },
+    {
+      "version": "v4",
+      "date": "2026-06-26",
+      "key_changes": [
+        "Added: 'Implement Mock DUT with realistic Cache behavior (way limit, LRU, writeback)'",
+        "Added: 'Ensure Mock DUT matches real NutShell Cache characteristics'"
+      ],
+      "verification_space_expansion": [
+        "Way-associative constraints",
+        "Dirty eviction with writeback",
+        "Memory fill on miss"
+      ],
+      "bugs_detected": [
+        "BUG-003 (Mock DUT infinite way)"
+      ],
+      "measurable_improvement": "Mock DUT behavior matches real Cache",
+      "impact_score": 70
+    },
+    {
+      "version": "v5",
+      "date": "2026-06-28",
+      "key_changes": [
+        "Critical: 'Analyze RTL microarchitecture for potential bugs'",
+        "Critical: 'Focus on LRU implementation and dirty eviction state machine'"
+      ],
+      "verification_space_expansion": [
+        "RTL LRU state machine analysis",
+        "Dirty eviction flow validation",
+        "Write-miss fill behavior"
+      ],
+      "bugs_detected": [
+        "BUG-010 (LRU round-robin bug)",
+        "BUG-011 (Dirty eviction deadlock)",
+        "BUG-012 (Write-miss data loss)"
+      ],
+      "measurable_improvement": "3 RTL design defects discovered and documented",
+      "impact_score": 95
+    },
+    {
+      "version": "v6",
+      "date": "2026-07-02",
+      "key_changes": [
+        "Added: 'Implement end-to-end fault detection using good_ref + faulty_ref + ScoreboardMismatch'",
+        "Added: 'Ensure faults are injected in DUT response path, not just comparison'"
+      ],
+      "verification_space_expansion": [
+        "End-to-end fault injection",
+        "Scoreboard-based fault detection",
+        "DUT-level fault modeling"
+      ],
+      "bugs_detected": [
+        "BUG-009 (Fault detection definitionally true)"
+      ],
+      "measurable_improvement": "All 5 fault types detected through ScoreboardMismatch",
+      "impact_score": 80
+    },
+    {
+      "version": "v7",
+      "date": "2026-07-10",
+      "key_changes": [
+        "Added: 'Implement OOO Scoreboard with independent writeback event stream'",
+        "Added: 'Track writeback events separately from CPU responses'"
+      ],
+      "verification_space_expansion": [
+        "Out-of-order transaction matching",
+        "Independent writeback tracking",
+        "Memory-side verification"
+      ],
+      "bugs_detected": [],
+      "measurable_improvement": "Scoreboard now handles pipelined cache responses",
+      "impact_score": 75
+    },
+    {
+      "version": "v8",
+      "date": "2026-07-13",
+      "key_changes": [
+        "Added: 'Extend coverage model with cross-coverage bins'",
+        "Added: 'Include writeback address corruption fault injection'",
+        "Added: 'Implement boundary tests for cross-line and multi-set scenarios'"
+      ],
+      "verification_space_expansion": [
+        "Cross-coverage (size\u00d7mask, replacement\u00d7type, access\u00d7latency)",
+        "Writeback address validation",
+        "Cross-line access detection",
+        "Multi-set eviction consistency"
+      ],
+      "bugs_detected": [],
+      "measurable_improvement": "Extended coverage 75%, 6th fault type added",
+      "impact_score": 65
+    }
+  ],
+  "bug_detections": [
+    {
+      "bug_id": "BUG-002",
+      "description": "Scoreboard circular reasoning: comparing ref.access() to itself",
+      "detection_prompt_version": "v3",
+      "root_cause_analysis": "AI generated Scoreboard that called ref.access(txn) and compared the result to another call of ref.access(txn), making it impossible to detect any faults",
+      "verification_evidence": "Test case: inject bit-flip in response data, Scoreboard failed to detect",
+      "fix_recommendation": "Refactor to use good_ref + faulty_ref pattern; Scoreboard compares expected (good) vs actual (faulty)"
+    },
+    {
+      "bug_id": "BUG-003",
+      "description": "Mock DUT infinite way: never evicts, no LRU state machine",
+      "detection_prompt_version": "v4",
+      "root_cause_analysis": "AI generated Mock DUT with dictionary storage that grew indefinitely without way-associativity constraints",
+      "verification_evidence": "Test case: fill > ways addresses, all were cached without eviction",
+      "fix_recommendation": "Implement way limit, LRU tracking, dirty writeback, and memory fill on miss"
+    },
+    {
+      "bug_id": "BUG-009",
+      "description": "Fault detection definitionally true: flipping expected then comparing to expected",
+      "detection_prompt_version": "v6",
+      "root_cause_analysis": "AI generated fault detectors that modified expected values and then compared them to the original, guaranteeing mismatch regardless of actual DUT behavior",
+      "verification_evidence": "Test: remove DUT, detectors still 'detected' faults",
+      "fix_recommendation": "Inject faults into faulty_ref access path; compare via ScoreboardMismatch"
+    },
+    {
+      "bug_id": "BUG-010",
+      "description": "LRU round-robin bug in RTL: pseudo-LRU instead of true LRU",
+      "detection_prompt_version": "v5",
+      "root_cause_analysis": "RTL implements LRU using round-robin counter instead of true recency tracking",
+      "verification_evidence": "Reference Model vs RTL comparison: different victim selection under re-access patterns",
+      "fix_recommendation": "Implement true LRU recency stack in RTL"
+    },
+    {
+      "bug_id": "BUG-011",
+      "description": "Dirty eviction deadlock: fill state machine doesn't handle writeback completion",
+      "detection_prompt_version": "v5",
+      "root_cause_analysis": "RTL fill state machine doesn't wait for writeback to complete before proceeding",
+      "verification_evidence": "Test: dirty eviction followed by new request causes hang",
+      "fix_recommendation": "Add writeback completion signal to fill state machine"
+    },
+    {
+      "bug_id": "BUG-012",
+      "description": "Write-miss data loss: fill only installs memory data, doesn't merge CPU write data",
+      "detection_prompt_version": "v5",
+      "root_cause_analysis": "RTL fill state machine writes backfill data without considering the CPU write that triggered the miss",
+      "verification_evidence": "Test: write-miss with specific data, subsequent read returns wrong value",
+      "fix_recommendation": "Merge CPU write data/mask into fill data before installing"
+    }
+  ],
+  "causal_links": [
+    {
+      "prompt_version": "v3",
+      "expanded_space": "Independent verification methodology",
+      "bug_id": "BUG-002",
+      "description": "v3 prompt explicitly required independent oracle, revealing Scoreboard circular reasoning"
+    },
+    {
+      "prompt_version": "v4",
+      "expanded_space": "Realistic Mock DUT behavior",
+      "bug_id": "BUG-003",
+      "description": "v4 prompt required way limits and LRU, revealing infinite way bug"
+    },
+    {
+      "prompt_version": "v5",
+      "expanded_space": "RTL microarchitecture analysis",
+      "bug_id": "BUG-010",
+      "description": "v5 prompt required RTL analysis, revealing pseudo-LRU implementation"
+    },
+    {
+      "prompt_version": "v5",
+      "expanded_space": "Dirty eviction state machine",
+      "bug_id": "BUG-011",
+      "description": "v5 prompt focused on dirty eviction, revealing deadlock scenario"
+    },
+    {
+      "prompt_version": "v5",
+      "expanded_space": "Write-miss fill behavior",
+      "bug_id": "BUG-012",
+      "description": "v5 prompt required write-miss validation, revealing data loss bug"
+    },
+    {
+      "prompt_version": "v6",
+      "expanded_space": "End-to-end fault detection",
+      "bug_id": "BUG-009",
+      "description": "v6 prompt required DUT-level fault injection, revealing definitionally-true detectors"
+    }
+  ]
+}

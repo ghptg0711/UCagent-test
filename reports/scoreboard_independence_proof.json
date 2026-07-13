@@ -1,0 +1,115 @@
+{
+  "total_tests": 12,
+  "successful_detections": 12,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "injection_type": "BIT_FLIP",
+      "injected_in_model": "Model A (ReferenceCache)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "BIT_FLIP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "BIT_FLIP",
+      "injected_in_model": "Model B (AlternativeReferenceModel)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "BIT_FLIP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "MASK_DROP",
+      "injected_in_model": "Model A (ReferenceCache)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "MASK_DROP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "MASK_DROP",
+      "injected_in_model": "Model B (AlternativeReferenceModel)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "MASK_DROP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "ADDRESS_OFFSET",
+      "injected_in_model": "Model A (ReferenceCache)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "ADDRESS_OFFSET should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "ADDRESS_OFFSET",
+      "injected_in_model": "Model B (AlternativeReferenceModel)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "ADDRESS_OFFSET should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "HIT_MISS_FLIP",
+      "injected_in_model": "Model A (ReferenceCache)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "HIT_MISS_FLIP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "HIT_MISS_FLIP",
+      "injected_in_model": "Model B (AlternativeReferenceModel)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "HIT_MISS_FLIP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "DIRTY_EVICTION_FLIP",
+      "injected_in_model": "Model A (ReferenceCache)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "DIRTY_EVICTION_FLIP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "DIRTY_EVICTION_FLIP",
+      "injected_in_model": "Model B (AlternativeReferenceModel)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "DIRTY_EVICTION_FLIP should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "WRITEBACK_DATA_CORRUPT",
+      "injected_in_model": "Model A (ReferenceCache)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "WRITEBACK_DATA_CORRUPT should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    },
+    {
+      "injection_type": "WRITEBACK_DATA_CORRUPT",
+      "injected_in_model": "Model B (AlternativeReferenceModel)",
+      "detected_by_oracle": true,
+      "scoreboard_mismatch": true,
+      "expected_discrepancy": "WRITEBACK_DATA_CORRUPT should cause mismatch",
+      "actual_discrepancy": "Mismatch detected: True",
+      "success": true
+    }
+  ]
+}

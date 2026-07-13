@@ -26,21 +26,14 @@
     {
       "name": "crv_seed_1",
       "status": "PASS",
-      "transactions": 300,
+      "transactions": 200,
       "coverage_percent": 100.0,
       "missing_bins": []
     },
     {
       "name": "crv_seed_2",
       "status": "PASS",
-      "transactions": 300,
-      "coverage_percent": 100.0,
-      "missing_bins": []
-    },
-    {
-      "name": "crv_seed_3",
-      "status": "PASS",
-      "transactions": 300,
+      "transactions": 200,
       "coverage_percent": 100.0,
       "missing_bins": []
     }
@@ -70,6 +63,28 @@
       "size.2": 2,
       "size.4": 1,
       "size.8": 14
+    },
+    "extended_coverage_percent": 75.0,
+    "extended_covered": 9,
+    "extended_total": 12,
+    "extended_missing": [
+      "cross.replacement_type.clean_write_miss",
+      "cross.size_mask.size1_single",
+      "policy.replacement.fifo_eviction"
+    ],
+    "extended_bins": {
+      "addr.back_to_back_same_line": 6,
+      "addr.stride_access_pattern": 1,
+      "cross.access_latency.read_miss_long": 4,
+      "cross.access_latency.write_hit_short": 3,
+      "cross.replacement_type.clean_write_miss": 0,
+      "cross.replacement_type.dirty_read_miss": 1,
+      "cross.size_mask.size1_single": 0,
+      "cross.size_mask.size4_sparse": 1,
+      "cross.size_mask.size8_full": 14,
+      "policy.replacement.fifo_eviction": 0,
+      "policy.replacement.lru_eviction": 4,
+      "policy.write_allocate.write_miss_alloc": 5
     }
   },
   "fault_detection": {
@@ -77,6 +92,7 @@
     "partial_write_mask_drop": true,
     "dirty_writeback_corruption": true,
     "response_order_swap": true,
-    "tag_compare_error": true
+    "tag_compare_error": true,
+    "writeback_addr_corruption": true
   }
 }

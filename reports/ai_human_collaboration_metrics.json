@@ -1,0 +1,197 @@
+{
+  "total_refactoring_events": 14,
+  "total_entropy_score": 10.85,
+  "average_entropy_per_event": 0.78,
+  "architecture_level_events": 9,
+  "implementation_level_events": 5,
+  "syntax_level_events": 0,
+  "architecture_ratio": 64.3,
+  "module_metrics": {
+    "scoreboard": {
+      "total_modifications": 2,
+      "syntax_level": 0,
+      "implementation_level": 0,
+      "architecture_level": 2,
+      "total_entropy": 1.8,
+      "average_entropy": 0.9,
+      "architecture_ratio": 100.0
+    },
+    "reference_model": {
+      "total_modifications": 3,
+      "syntax_level": 0,
+      "implementation_level": 1,
+      "architecture_level": 2,
+      "total_entropy": 2.3,
+      "average_entropy": 0.77,
+      "architecture_ratio": 66.7
+    },
+    "coverage": {
+      "total_modifications": 2,
+      "syntax_level": 0,
+      "implementation_level": 1,
+      "architecture_level": 1,
+      "total_entropy": 1.35,
+      "average_entropy": 0.68,
+      "architecture_ratio": 50.0
+    },
+    "ooo_scoreboard": {
+      "total_modifications": 2,
+      "syntax_level": 0,
+      "implementation_level": 0,
+      "architecture_level": 2,
+      "total_entropy": 1.8,
+      "average_entropy": 0.9,
+      "architecture_ratio": 100.0
+    },
+    "regression": {
+      "total_modifications": 2,
+      "syntax_level": 0,
+      "implementation_level": 1,
+      "architecture_level": 1,
+      "total_entropy": 1.6,
+      "average_entropy": 0.8,
+      "architecture_ratio": 50.0
+    },
+    "faults": {
+      "total_modifications": 1,
+      "syntax_level": 0,
+      "implementation_level": 0,
+      "architecture_level": 1,
+      "total_entropy": 0.8,
+      "average_entropy": 0.8,
+      "architecture_ratio": 100.0
+    },
+    "real_dut_adapter": {
+      "total_modifications": 1,
+      "syntax_level": 0,
+      "implementation_level": 1,
+      "architecture_level": 0,
+      "total_entropy": 0.65,
+      "average_entropy": 0.65,
+      "architecture_ratio": 0.0
+    },
+    "toffee_adapter": {
+      "total_modifications": 1,
+      "syntax_level": 0,
+      "implementation_level": 1,
+      "architecture_level": 0,
+      "total_entropy": 0.55,
+      "average_entropy": 0.55,
+      "architecture_ratio": 0.0
+    }
+  },
+  "refactoring_events": [
+    {
+      "file_path": "src/cache_vip/scoreboard.py",
+      "modification_type": "CONTROL_FLOW_RESTRUCTURE",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.95,
+      "description": "Fixed circular reasoning: Scoreboard now uses independent good_ref + faulty_ref pattern instead of comparing ref.access() to itself",
+      "location": "compare_response method"
+    },
+    {
+      "file_path": "src/cache_vip/scoreboard.py",
+      "modification_type": "ASSERTION_LOGIC",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.85,
+      "description": "Added comprehensive field comparison: hit/miss, dirty eviction, writeback addr/data, error fields",
+      "location": "compare_response method"
+    },
+    {
+      "file_path": "src/cache_vip/reference_model.py",
+      "modification_type": "STATE_MACHINE",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.9,
+      "description": "Fixed LRU recency tracking: LRU now properly maintains access order instead of simple round-robin",
+      "location": "_touch method"
+    },
+    {
+      "file_path": "src/cache_vip/reference_model.py",
+      "modification_type": "DATA_STRUCTURE",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.8,
+      "description": "Added dirty bit tracking and writeback mechanism for dirty evictions",
+      "location": "access method"
+    },
+    {
+      "file_path": "src/cache_vip/reference_model.py",
+      "modification_type": "CONDITIONAL_ADJUSTMENT",
+      "modification_level": "IMPLEMENTATION",
+      "entropy_score": 0.6,
+      "description": "Fixed cross-line access detection: added boundary check to reject accesses spanning two cache lines",
+      "location": "access method"
+    },
+    {
+      "file_path": "src/cache_vip/coverage.py",
+      "modification_type": "NEW_CLASS",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.85,
+      "description": "Extended coverage model with 12 cross-coverage bins (size\u00d7mask, replacement\u00d7type, access\u00d7latency, policy, address pattern)",
+      "location": "Coverage class"
+    },
+    {
+      "file_path": "src/cache_vip/coverage.py",
+      "modification_type": "DATA_STRUCTURE",
+      "modification_level": "IMPLEMENTATION",
+      "entropy_score": 0.5,
+      "description": "Parameterized line_bytes instead of hardcoded 64",
+      "location": "__init__ method"
+    },
+    {
+      "file_path": "src/cache_vip/ooo_scoreboard.py",
+      "modification_type": "NEW_CLASS",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.92,
+      "description": "Added independent writeback event stream tracking with out-of-order matching capability",
+      "location": "WritebackEvent class"
+    },
+    {
+      "file_path": "src/cache_vip/ooo_scoreboard.py",
+      "modification_type": "CONTROL_FLOW_RESTRUCTURE",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.88,
+      "description": "Implemented txn_id-based out-of-order matching with orphan/duplicate/reorder detection",
+      "location": "compare_actual method"
+    },
+    {
+      "file_path": "src/cache_vip/regression.py",
+      "modification_type": "CONTROL_FLOW_RESTRUCTURE",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.9,
+      "description": "Refactored fault detection from definitionally-true pattern to end-to-end good_ref + faulty_ref + ScoreboardMismatch pattern",
+      "location": "_detect_* functions"
+    },
+    {
+      "file_path": "src/cache_vip/regression.py",
+      "modification_type": "ALGORITHM_CHANGE",
+      "modification_level": "IMPLEMENTATION",
+      "entropy_score": 0.7,
+      "description": "Changed same_set calculation from synthetic index to real address hash/tag computation",
+      "location": "_run_enhanced_core_seed"
+    },
+    {
+      "file_path": "src/cache_vip/faults.py",
+      "modification_type": "NEW_FUNCTION",
+      "modification_level": "ARCHITECTURE",
+      "entropy_score": 0.8,
+      "description": "Added corrupt_writeback_addr() fault injection for writeback address generation errors",
+      "location": "FaultInjector class"
+    },
+    {
+      "file_path": "src/cache_vip/real_dut_adapter.py",
+      "modification_type": "CONDITIONAL_ADJUSTMENT",
+      "modification_level": "IMPLEMENTATION",
+      "entropy_score": 0.65,
+      "description": "Fixed missing await on reset_wrapper.write() - async operation was never executing",
+      "location": "reset method"
+    },
+    {
+      "file_path": "src/cache_vip/toffee_adapter.py",
+      "modification_type": "CONDITIONAL_ADJUSTMENT",
+      "modification_level": "IMPLEMENTATION",
+      "entropy_score": 0.55,
+      "description": "Fixed missing ready.write(1) in CPU response handshake",
+      "location": "_process_response method"
+    }
+  ]
+}

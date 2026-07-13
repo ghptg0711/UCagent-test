@@ -36,7 +36,8 @@ def _run_txns(
     - No unexpected exceptions
     - Coverage is collected
     """
-    ref = ReferenceCache(params)
+    cache_params = params or CacheParams()
+    ref = ReferenceCache(cache_params)
     result = _Result(ref)
     written: dict[int, tuple[int, int]] = {}  # addr -> (data, mask)
 
@@ -50,6 +51,8 @@ def _run_txns(
             evicted_clean=(response.evicted and not response.evicted_dirty),
             latency=latency,
             same_set=mark_same_set,
+            replacement_policy=cache_params.replacement.value,
+            write_allocate=cache_params.write_allocate,
         )
 
         if txn.op is CacheOp.READ and txn.addr in written:
@@ -480,9 +483,136 @@ class TestCRVStability:
         txns1 = gen1.random_stream(50)
         txns2 = gen2.random_stream(50)
 
-        # Should have some differences
         diffs = sum(1 for t1, t2 in zip(txns1, txns2, strict=True) if t1 != t2)
         assert diffs > 0, "Different seeds should produce different sequences"
+
+
+class TestCrossLineDetection:
+    def test_cross_line_read_raises(self):
+        """Reference model must reject accesses that span two cache lines."""
+        params = CacheParams(sets=1, ways=1, line_bytes=16)
+        ref = ReferenceCache(params)
+
+        txn = CacheTxn(CacheOp.READ, addr=12, size=8, txn_id=1)
+        with pytest.raises(ValueError, match="cross-line"):
+            ref.access(txn)
+
+    def test_cross_line_write_raises(self):
+        """Write that spans two lines must also be rejected."""
+        params = CacheParams(sets=1, ways=1, line_bytes=16)
+        ref = ReferenceCache(params)
+
+        txn = CacheTxn(CacheOp.WRITE, addr=14, size=4, data=0xDEAD, mask=0xF, txn_id=1)
+        with pytest.raises(ValueError, match="cross-line"):
+            ref.access(txn)
+
+    def test_last_byte_access_ok(self):
+        """Access ending exactly at line boundary is valid."""
+        params = CacheParams(sets=1, ways=1, line_bytes=16)
+        ref = ReferenceCache(params)
+
+        txn = CacheTxn(CacheOp.READ, addr=8, size=8, txn_id=1)
+        resp = ref.access(txn)
+        assert resp.hit is False
+
+
+class TestMultiSetEvictionConsistency:
+    def test_eviction_in_one_set_does_not_affect_another(self):
+        """Evicting a line in set N must not modify lines in set M."""
+        params = CacheParams(sets=4, ways=2, line_bytes=64)
+        ref = ReferenceCache(params)
+
+        set_0_tags = [0, 4, 8]
+        set_2_tags = [1, 5, 9]
+
+        set_0_addrs = [tag * params.sets * params.line_bytes + 0 * params.line_bytes for tag in set_0_tags]
+        set_2_addrs = [tag * params.sets * params.line_bytes + 2 * params.line_bytes for tag in set_2_tags]
+
+        for i, addr in enumerate(set_0_addrs[:2]):
+            ref.access(CacheTxn(CacheOp.WRITE, addr, 4, data=100 + i, mask=0xF, txn_id=i))
+
+        for i, addr in enumerate(set_2_addrs[:2]):
+            ref.access(CacheTxn(CacheOp.WRITE, addr, 4, data=200 + i, mask=0xF, txn_id=10 + i))
+
+        evict_resp = ref.access(
+            CacheTxn(CacheOp.WRITE, set_0_addrs[2], 4, data=199, mask=0xF, txn_id=20)
+        )
+        assert evict_resp.evicted is True
+
+        for i, addr in enumerate(set_2_addrs[:2]):
+            resp = ref.access(CacheTxn(CacheOp.READ, addr, 4, txn_id=30 + i))
+            assert resp.hit is True
+            assert (resp.data & 0xFFFFFFFF) == 200 + i
+
+
+class TestPolicyBehavioralDifference:
+    def test_lru_vs_fifo_victim_selection_differs(self):
+        """Under access pattern that re-touches first line, LRU and FIFO
+        must evict different victims.
+        """
+        params_lru = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.LRU)
+        params_fifo = CacheParams(sets=1, ways=2, line_bytes=64, replacement=ReplacementPolicy.FIFO)
+
+        ref_lru = ReferenceCache(params_lru)
+        ref_fifo = ReferenceCache(params_fifo)
+
+        ref_lru.access(CacheTxn(CacheOp.WRITE, 0x00, 4, data=0xAA, mask=0xF, txn_id=1))
+        ref_lru.access(CacheTxn(CacheOp.WRITE, 0x40, 4, data=0xBB, mask=0xF, txn_id=2))
+        ref_lru.access(CacheTxn(CacheOp.READ, 0x00, 4, txn_id=3))
+
+        ref_fifo.access(CacheTxn(CacheOp.WRITE, 0x00, 4, data=0xAA, mask=0xF, txn_id=1))
+        ref_fifo.access(CacheTxn(CacheOp.WRITE, 0x40, 4, data=0xBB, mask=0xF, txn_id=2))
+        ref_fifo.access(CacheTxn(CacheOp.READ, 0x00, 4, txn_id=3))
+
+        resp_lru = ref_lru.access(CacheTxn(CacheOp.WRITE, 0x80, 4, data=0xCC, mask=0xF, txn_id=4))
+        resp_fifo = ref_fifo.access(CacheTxn(CacheOp.WRITE, 0x80, 4, data=0xCC, mask=0xF, txn_id=4))
+
+        assert resp_lru.evicted is True
+        assert resp_fifo.evicted is True
+
+        lru_0_still_hit = ref_lru.access(CacheTxn(CacheOp.READ, 0x00, 4, txn_id=5)).hit
+        fifo_0_still_hit = ref_fifo.access(CacheTxn(CacheOp.READ, 0x00, 4, txn_id=5)).hit
+
+        assert lru_0_still_hit is True, "LRU: re-touched line 0 stays, line 1 evicted"
+        assert fifo_0_still_hit is False, "FIFO: line 0 was first in, gets evicted"
+
+
+class TestExtendedCoverageBins:
+    def test_extended_coverage_samples_cross_bins(self):
+        """Extended cross-coverage bins must be populated by directed traffic."""
+        params = CacheParams(sets=2, ways=2, line_bytes=64, replacement=ReplacementPolicy.LRU)
+        ref = ReferenceCache(params)
+        cov = Coverage(line_bytes=params.line_bytes)
+
+        txns = [
+            CacheTxn(CacheOp.WRITE, 0x000, 8, data=0xDEADBEEF, mask=0xFF, txn_id=1),
+            CacheTxn(CacheOp.READ, 0x000, 4, txn_id=2),
+            CacheTxn(CacheOp.WRITE, 0x008, 4, data=0xABCD, mask=0b0101, txn_id=3),
+            CacheTxn(CacheOp.WRITE, 0x040, 8, data=0x11223344, mask=0xFF, txn_id=4),
+            CacheTxn(CacheOp.READ, 0x080, 8, txn_id=5),
+            CacheTxn(CacheOp.WRITE, 0x000, 1, data=0xFF, mask=0x1, txn_id=6),
+        ]
+
+        visited_sets: set[int] = set()
+        for idx, txn in enumerate(txns):
+            resp = ref.access(txn)
+            set_idx = (txn.addr // params.line_bytes) % params.sets
+            same_set = set_idx in visited_sets
+            visited_sets.add(set_idx)
+            cov.sample_access(
+                txn,
+                hit=resp.hit,
+                evicted_dirty=resp.evicted_dirty,
+                evicted_clean=(resp.evicted and not resp.evicted_dirty),
+                latency=10 if idx % 3 == 0 else 2,
+                same_set=same_set,
+                replacement_policy=params.replacement.value,
+                write_allocate=params.write_allocate,
+            )
+
+        assert cov.bins["cross.size_mask.size8_full"] >= 1
+        assert cov.bins["policy.write_allocate.write_miss_alloc"] >= 1
+        assert cov.bins["addr.back_to_back_same_line"] >= 1
 
 
 if __name__ == "__main__":
