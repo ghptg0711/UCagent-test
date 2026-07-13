@@ -10,11 +10,21 @@ which is only available in WSL2/Linux environment.
 import sys
 import pytest
 
+
+def _xspcomm_available() -> bool:
+    """Check whether the xspcomm runtime (Picker) is importable."""
+    try:
+        import xspcomm  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
 # Skip all tests in this module if xspcomm is not available
 pytestmark = [
     pytest.mark.skipif(
-        sys.platform == "win32",
-        reason="xspcomm library only available in WSL2/Linux"
+        not _xspcomm_available(),
+        reason="xspcomm (Picker runtime) not installed; run in WSL2 with Picker"
     ),
     pytest.mark.asyncio
 ]
