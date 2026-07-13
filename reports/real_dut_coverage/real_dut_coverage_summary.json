@@ -6,5 +6,6 @@
   "crv_seed": 42,
   "verilator_coverage_available": false,
   "exclusion_justification": "Verilator line/branch/FSM/toggle coverage not available because the pre-compiled DUT .so was not built with --coverage flag. Functional coverage (19 bins) is used as primary metric. To enable code coverage, recompile NutShell RTL with: verilator --cc --coverage -Wno-fatal NutShellCache.v",
-  "status": "PASS"
+  "status": "HISTORICAL_NON_SIGNOFF",
+  "note": "Regenerate with DUTRegressionRunner on a compatible self-hosted runner; this file contains no measured 19-bin DUT coverage."
 }

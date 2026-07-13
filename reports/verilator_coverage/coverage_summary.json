@@ -10,6 +10,7 @@
     "pct": 6.6
   },
   "metadata": {
+    "dut_scope": "simplified RTL; not RealNutShellCache",
     "tool": "Verilator",
     "timestamp": "2026-07-10T15:35:40+0800",
     "source_file": "reports/verilator_coverage/coverage.info",

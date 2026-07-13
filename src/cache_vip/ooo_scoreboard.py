@@ -63,7 +63,7 @@ class OooScoreboard:
         self.matched += 1
 
     def _check_fields(self, txn: CacheTxn, expected: CacheResponse, actual: CacheResponse) -> None:
-        if expected.hit != actual.hit:
+        if actual.observes("hit") and expected.hit != actual.hit:
             raise ScoreboardMismatch(
                 f"hit/miss mismatch txn_id={txn.txn_id} addr=0x{txn.addr:x}: "
                 f"expected hit={expected.hit}, got hit={actual.hit}"
@@ -73,19 +73,19 @@ class OooScoreboard:
                 f"read data mismatch txn_id={txn.txn_id} addr=0x{txn.addr:x}: "
                 f"expected 0x{expected.data:x}, got 0x{actual.data:x}"
             )
-        if expected.evicted_dirty != actual.evicted_dirty:
+        if actual.observes("evicted_dirty") and expected.evicted_dirty != actual.evicted_dirty:
             raise ScoreboardMismatch(
                 f"dirty eviction mismatch txn_id={txn.txn_id}: "
                 f"expected {expected.evicted_dirty}, got {actual.evicted_dirty}"
             )
-        if expected.writeback_addr != actual.writeback_addr:
+        if actual.observes("writeback_addr") and expected.writeback_addr != actual.writeback_addr:
             raise ScoreboardMismatch(
                 f"writeback addr mismatch txn_id={txn.txn_id}: "
                 f"expected {expected.writeback_addr}, got {actual.writeback_addr}"
             )
-        if expected.writeback_data != actual.writeback_data:
+        if actual.observes("writeback_data") and expected.writeback_data != actual.writeback_data:
             raise ScoreboardMismatch(f"writeback data mismatch txn_id={txn.txn_id}")
-        if expected.error != actual.error:
+        if actual.observes("error") and expected.error != actual.error:
             raise ScoreboardMismatch(
                 f"error mismatch txn_id={txn.txn_id}: expected {expected.error}, got {actual.error}"
             )

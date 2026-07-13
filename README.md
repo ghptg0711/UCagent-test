@@ -41,8 +41,6 @@ PYTHONPATH=src python -m cache_vip.regression
 # WSL2 全量验证：预编译 DUT 需要 Python 3.14
 bash run_wsl_tests.sh
 
-# 异构 x86 主机：用 QEMU CPU 模型运行仓库中的真实 DUT
-EMULATE_REAL_DUT_CPU=1 bash run_wsl_tests.sh
 ```
 
 `run_wsl_tests.sh` 默认使用清华 PyPI 镜像；可通过 `PIP_INDEX_URL` 覆盖。xspcomm
@@ -52,8 +50,9 @@ EMULATE_REAL_DUT_CPU=1 bash run_wsl_tests.sh
 仓库中 `rtl/generated_real/_UT_RealNutShellCache.so` 使用 Python 3.13+
 C API，并由 Python 3.14 环境生成；真实 DUT 验证请使用 Python 3.14。
 该历史证据二进制还使用了 Picker 模板原有的 `-march=native`，不能保证跨 CPU
-直接运行。CI 因此设置 `EMULATE_REAL_DUT_CPU=1`，通过 QEMU 的通用 x86 CPU
-模型执行同一个真实 DUT；新的 DUT 构建则默认使用通用 x86-64 指令集。
+直接运行。标准 GitHub-hosted CI 只执行可移植的 core 与 DUT contract 测试；真实
+DUT job 仅能在带 `real-dut` 标签、CPU 兼容且已安装 Picker 的 self-hosted runner
+上手工触发。新的 DUT 构建模板默认使用通用 x86-64 指令集。
 
 ## Project Structure
 
@@ -90,19 +89,22 @@ C API，并由 Python 3.14 环境生成；真实 DUT 验证请使用 Python 3.14
 
 | 指标 | 结果 |
 | --- | --- |
-| 功能覆盖率 | **100%**（19/19 bins） |
+| Core Reference Model 功能覆盖率 | **100%**（19/19 bins） |
 | 故障检出 | **5/5** 全部检出 |
 | 单元测试 | 详见 CI 与本地 pytest 日志 |
 | CRV 回归 | 多 seed 约束随机回归，详见 `reports/core_regression_summary.md` |
+| Real DUT 功能覆盖率 | 待兼容 self-hosted runner 实测，不以 core 覆盖率替代 |
 
 详细验证数据见 `reports/coverage_summary.md` 与 `reports/core_regression_summary.md`。
 
 ## CI
 
-项目通过 GitHub Actions 持续集成（见 `.github/workflows/verification.yml`），包含两个作业：
+项目通过 GitHub Actions 持续集成（见 `.github/workflows/verification.yml`）：
 
 - **unit-tests**：在标准 Ubuntu Runner 上运行单元测试与核心回归，不依赖 WSL2。
-- **real-dut-tests**：在 Ubuntu 24.04 + Python 3.14 上运行真实 DUT 冒烟测试，需要 Picker/Verilator 构建产物。
+- **dut-contract-tests**：验证 independent expected/actual、Scoreboard 和 Adapter actual 保真。
+- **real-dut-tests**：仅在手工触发且存在兼容的 self-hosted Picker runner 时运行；其结果
+  不由前两个 job 替代。
 
 ## License
 

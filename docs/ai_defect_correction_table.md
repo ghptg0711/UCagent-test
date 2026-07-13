@@ -11,7 +11,7 @@
 | 文件数 | 15+ 文件由 UCAgent 生成初版 | 全部文件经人工 review/重构 |
 | 缺陷总数 | 11 个记录缺陷 + 3 类能力边界 | 逐一修正或绕过 |
 | RTL 设计缺陷 | UCAgent 无法分析 | 人工定位 BUG-010/011 |
-| 最终测试 | — | 68 passed, 覆盖率 100%, 故障 5/5 检出 |
+| 当前可移植测试 | — | 77 passed；core coverage 100%；Real DUT coverage 待重跑；故障 5/5 经 ScoreboardMismatch 检出 |
 
 ## 二、逐模块对比表
 

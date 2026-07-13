@@ -1,5 +1,9 @@
 # NutShell Cache Verification Report
 
+> 当前证据边界：Core Reference Model 与 DUT contract 可移植 gate 已完成；
+> RealNutShellCache native `.so` 尚待兼容 self-hosted runner 重建和重跑。本文中历史
+> Real DUT PASS/coverage 描述在获得新 CI artifact 前不作为 sign-off。
+
 ## 1. Scope
 
 This report covers the current NutShell Cache verification environment, including both the DUT-independent verification core and the Toffee/Picker integration layer. The implemented scope includes:
@@ -68,7 +72,7 @@ cache-vip-regress --seeds 1,2,3,4,5 --count 1000 --report-dir reports
 | Check | Result |
 | --- | --- |
 | Python syntax check | PASS |
-| Unit tests (total) | PASS, 68 passed |
+| Portable tests | PASS, 77 passed（以最新 CI 为准） |
 | Directed cases | PASS, 16 cases (incl. BUG-010/011 RTL defect evidence) |
 | Edge cases | PASS, 17 cases |
 | DUT smoke (mock) | PASS, 7 cases |
@@ -189,7 +193,7 @@ The `ToffeeMemoryAgent` provides:
 
 The verification environment is significantly more complete than before. It now includes:
 
-1. **Complete core**: Golden model, scoreboard, coverage, generator, fault injection — all at 100% core coverage.
+1. **Complete core**: Golden model, scoreboard, generator and fault injection；19-bin 100% 仅表示 core Reference Model coverage。
 2. **Parameterized policies**: LRU/FIFO/Random replacement, write-allocate/no-write-allocate — all verified.
 3. **Rich directed cases**: 14 advanced directed tests covering LRU correctness, FIFO correctness, RAW dependencies, line boundary, uncached access, and more.
 4. **Toffee adapter**: Fully implemented and verified with mock DUT (7 smoke tests pass).

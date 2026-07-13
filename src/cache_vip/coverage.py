@@ -49,7 +49,7 @@ class Coverage:
         self,
         txn: CacheTxn,
         *,
-        hit: bool,
+        hit: bool | None,
         evicted_dirty: bool = False,
         evicted_clean: bool = False,
         latency: int = 0,
@@ -57,7 +57,8 @@ class Coverage:
     ) -> None:
         self.bins[f"op.{txn.op.value}"] += 1
         self.bins[f"size.{txn.size}"] += 1
-        self.bins[f"access.{txn.op.value}_{'hit' if hit else 'miss'}"] += 1
+        if hit is not None:
+            self.bins[f"access.{txn.op.value}_{'hit' if hit else 'miss'}"] += 1
 
         full_mask = (1 << txn.size) - 1
         if txn.mask == full_mask:

@@ -42,6 +42,8 @@ Status: `PASS`
 
 ## CRV
 
-- crv_seed_1: `300` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_2: `300` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_3: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_1: `1000` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_2: `1000` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_3: `1000` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_4: `1000` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_5: `1000` transactions, status `PASS`, coverage `100.0%`

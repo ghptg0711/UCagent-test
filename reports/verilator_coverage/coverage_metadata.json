@@ -5,5 +5,6 @@
   "simulation_seed": 42,
   "total_cycles": 1000000,
   "dut_file": "rtl/dut_gen/NutShellCache.v",
+  "dut_scope": "simplified RTL; not RealNutShellCache",
   "coverage_file": "reports/verilator_coverage/coverage.dat"
 }

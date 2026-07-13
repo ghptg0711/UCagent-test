@@ -141,7 +141,7 @@ PYTHONPATH=src .venv/bin/python -m cache_vip.regression --seeds 1,2,3 --count 30
 结果：
 
 - `compileall`：通过。
-- `pytest`：68 passed。
+- `pytest`：77 个可移植测试通过（以最新 CI 为准）。
 - `core regression`：PASS，required bins 19/19，fault detection 5/5。
 - `test_directed_stream_reaches_required_core_coverage`：core required functional bins 达到 100%。
 

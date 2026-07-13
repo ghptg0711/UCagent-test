@@ -101,6 +101,8 @@ class RealCacheAdapter:
         self._memory: dict[int, int] = {}
         self._mem_response: list[tuple[int, int]] = []
         self._mmio_response: list[tuple[int, int]] = []
+        self._bus_events: list[dict[str, int | str]] = []
+        self._txn_event_start: dict[int, int] = {}
         self._trace_file = trace_file
         self._cycle_count = 0
 
@@ -111,7 +113,15 @@ class RealCacheAdapter:
             self.dut_wrapper.dut.EnableTrace(self._trace_file)
         await self._drive_idle_inputs()
 
-    async def reset(self, cycles: int = 10) -> None:
+    async def reset(self, cycles: int = 10, *, clear_memory: bool = False) -> None:
+        self._pending_txns.clear()
+        self._txn_event_start.clear()
+        self._bus_events.clear()
+        self._mem_response.clear()
+        self._mmio_response.clear()
+        if clear_memory:
+            self._memory.clear()
+            self._cycle_count = 0
         await self.dut_wrapper._reset(cycles)
         await self._drive_idle_inputs()
 
@@ -143,7 +153,7 @@ class RealCacheAdapter:
         base = addr & ~0x7
         data = 0
         for index in range(8):
-            data |= (self._memory.get(base + index, (base + index) & 0xFF) & 0xFF) << (8 * index)
+            data |= (self._memory.get(base + index, 0) & 0xFF) << (8 * index)
         return data
 
     def _store_word(self, addr: int, data: int, mask: int) -> None:
@@ -164,6 +174,7 @@ class RealCacheAdapter:
         resp_cmd: str | None,
         resp_rdata: str | None,
         pending_attr: str,
+        bus_name: str,
     ) -> None:
         pending: list[tuple[int, int]] = getattr(self, pending_attr)
         if pending:
@@ -181,9 +192,19 @@ class RealCacheAdapter:
 
         addr = await self._read_if_present(req_addr)
         cmd = await self._read_if_present(req_cmd)
+        data = await self._read_if_present(req_wdata)
+        mask = await self._read_if_present(req_wmask, 0xFF)
+        self._bus_events.append(
+            {
+                "bus": bus_name,
+                "cycle": self._cycle_count,
+                "addr": addr,
+                "cmd": cmd,
+                "data": data,
+                "mask": mask,
+            }
+        )
         if cmd & 0x1:
-            data = await self._read_if_present(req_wdata)
-            mask = await self._read_if_present(req_wmask, 0xFF)
             self._store_word(addr, data, mask)
             if cmd in (SIMPLEBUS_WRITE, SIMPLEBUS_WRITE_LAST):
                 pending.append((SIMPLEBUS_WRITE_RESP, 0))
@@ -208,6 +229,7 @@ class RealCacheAdapter:
             self.signal_map.mem_resp_cmd,
             self.signal_map.mem_resp_rdata,
             "_mem_response",
+            "mem",
         )
         await self._service_one_bus(
             self.signal_map.mmio_req_valid,
@@ -220,9 +242,11 @@ class RealCacheAdapter:
             self.signal_map.mmio_resp_cmd,
             self.signal_map.mmio_resp_rdata,
             "_mmio_response",
+            "mmio",
         )
 
     async def drive_cpu_request(self, txn: CacheTxn) -> None:
+        self._txn_event_start[txn.txn_id] = len(self._bus_events)
         valid_sig = getattr(self.dut_wrapper, self.signal_map.cpu_req_valid)
         ready_sig = getattr(self.dut_wrapper, self.signal_map.cpu_req_ready)
         addr_sig = getattr(self.dut_wrapper, self.signal_map.cpu_req_addr)
@@ -245,9 +269,6 @@ class RealCacheAdapter:
             await user_sig.write(0)
         await wdata_sig.write(txn.data or 0)
         await wmask_sig.write(txn.mask or ((1 << txn.size) - 1))
-        if txn.op is CacheOp.WRITE:
-            self._store_word(txn.addr, txn.data or 0, txn.mask or ((1 << txn.size) - 1))
-
         while True:
             ready = await ready_sig.read()
             if ready:
@@ -277,23 +298,42 @@ class RealCacheAdapter:
 
         txn_id = next(iter(self._pending_txns.keys()), 0)
         txn = self._pending_txns.get(txn_id)
-        if (
-            txn
-            and txn.op is CacheOp.READ
-            and any((txn.addr & ~0x7) + i in self._memory for i in range(8))
-        ):
-            rdata = self._load_word(txn.addr)
+        event_start = self._txn_event_start.pop(txn_id, len(self._bus_events))
+        events = self._bus_events[event_start:]
+        memory_reads = [event for event in events if not int(event["cmd"]) & 0x1]
+        writebacks = [event for event in events if int(event["cmd"]) & 0x1]
+        hit = None if txn is None or txn.uncached else not memory_reads
+        writeback_addr = int(writebacks[0]["addr"]) if writebacks else None
         if txn_id in self._pending_txns:
             del self._pending_txns[txn_id]
 
-        return CacheResponse(txn_id=txn_id, data=rdata, hit=False)
+        return CacheResponse(
+            txn_id=txn_id,
+            data=rdata,
+            hit=hit,
+            evicted_dirty=bool(writebacks),
+            writeback_addr=writeback_addr,
+            observed_fields=frozenset(
+                {"txn_id", "data", "hit", "evicted_dirty", "writeback_addr"}
+            ),
+        )
 
     @property
     def cycle_count(self) -> int:
         return self._cycle_count
 
+    @property
+    def bus_events(self) -> tuple[dict[str, int | str], ...]:
+        return tuple(self._bus_events)
+
     def finish(self) -> None:
-        """Leave shared Picker process state intact for subsequent tests."""
+        """Finalize the DUT and release the process-global adapter."""
+        global _SHARED_ADAPTER
+        dut = self.dut_wrapper.dut
+        if dut is not None:
+            dut.Finish()
+            self.dut_wrapper.dut = None
+        _SHARED_ADAPTER = None
 
 
 _SHARED_ADAPTER: RealCacheAdapter | None = None

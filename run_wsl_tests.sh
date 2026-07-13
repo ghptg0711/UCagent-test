@@ -43,34 +43,12 @@ echo "[2/5] Checking Python style"
 "${PYTHON_BIN}" -m ruff format --check src tests scripts tools
 
 echo "[3/5] Running unit and real-DUT integration tests"
-if [[ "${EMULATE_REAL_DUT_CPU:-0}" == "1" ]]; then
-    if ! command -v qemu-x86_64 >/dev/null 2>&1; then
-        echo "ERROR: EMULATE_REAL_DUT_CPU=1 requires qemu-x86_64 (qemu-user)." >&2
-        exit 2
-    fi
-    DUT_PYTHON_BIN="$(command -v "${PYTHON_BIN}")"
-    readonly DUT_PYTHON_BIN
-    "${PYTHON_BIN}" -m pytest tests -v \
-        --ignore=tests/test_real_dut_smoke.py \
-        --cov=cache_vip --cov-report=term-missing
-    if ! qemu-x86_64 -cpu max -d in_asm -D qemu-real-dut.log \
-        "${DUT_PYTHON_BIN}" -m pytest tests/test_real_dut_smoke.py -v; then
-        echo "QEMU failed; final translated instruction blocks:" >&2
-        tail -120 qemu-real-dut.log >&2
-        exit 1
-    fi
-else
-    "${PYTHON_BIN}" -m pytest tests -v --cov=cache_vip --cov-report=term-missing
-fi
+"${PYTHON_BIN}" -m pytest tests -v --cov=cache_vip --cov-report=term-missing
 
 echo "[4/5] Running core regression"
 "${PYTHON_BIN}" -m cache_vip.regression --seeds 1,2,3,4,5 --count 1000
 
 echo "[5/5] Generating real-DUT coverage evidence"
-if [[ "${EMULATE_REAL_DUT_CPU:-0}" == "1" ]]; then
-    qemu-x86_64 -cpu max "${DUT_PYTHON_BIN}" tools/gen_real_dut_coverage.py
-else
-    "${PYTHON_BIN}" tools/gen_real_dut_coverage.py
-fi
+"${PYTHON_BIN}" tools/gen_real_dut_coverage.py
 
 echo "Verification completed successfully"

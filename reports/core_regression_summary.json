@@ -26,21 +26,35 @@
     {
       "name": "crv_seed_1",
       "status": "PASS",
-      "transactions": 300,
+      "transactions": 1000,
       "coverage_percent": 100.0,
       "missing_bins": []
     },
     {
       "name": "crv_seed_2",
       "status": "PASS",
-      "transactions": 300,
+      "transactions": 1000,
       "coverage_percent": 100.0,
       "missing_bins": []
     },
     {
       "name": "crv_seed_3",
       "status": "PASS",
-      "transactions": 300,
+      "transactions": 1000,
+      "coverage_percent": 100.0,
+      "missing_bins": []
+    },
+    {
+      "name": "crv_seed_4",
+      "status": "PASS",
+      "transactions": 1000,
+      "coverage_percent": 100.0,
+      "missing_bins": []
+    },
+    {
+      "name": "crv_seed_5",
+      "status": "PASS",
+      "transactions": 1000,
       "coverage_percent": 100.0,
       "missing_bins": []
     }

@@ -1,5 +1,8 @@
 # AI Collaboration Log
 
+> 本文件是逐轮历史记录，不代表所有阶段性 PASS/coverage 声明在当前版本仍有效。
+> 当前有效结论以 `docs/submission_review_report.md` 和最新 CI 为准。
+
 ## Overview
 
 This document records the AI-assisted verification development process for the NutShell Cache project. It documents how AI was used, what was generated, and what was manually reviewed and modified.
@@ -576,4 +579,3 @@ Conduct a strict review of the entire project from a judge's perspective, identi
 2. **缺陷修复模板**：`<模块>存在<缺陷>,根因是<分析>,修复方式:1)... 2)...,需保持<不变量>`
 3. **评审模板**：`以<角色>视角审查<范围>,按 P0/P1/P2 分级,给出证据与修复`
 4. **能力边界识别**：当 AI 连续 2 次无法正确处理同一类问题（如 Verilator 宽位信号），判定为能力边界，转人工。
-

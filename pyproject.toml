@@ -27,11 +27,10 @@ addopts = ["--strict-config", "--strict-markers"]
 
 [tool.coverage.run]
 branch = true
-omit = ["src/cache_vip/real_dut_adapter.py"]
 source = ["cache_vip"]
 
 [tool.coverage.report]
-fail_under = 68
+fail_under = 69
 precision = 1
 show_missing = true
 skip_covered = true

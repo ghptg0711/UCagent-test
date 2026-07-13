@@ -7,10 +7,11 @@ from pathlib import Path
 
 from .faults import FaultInjector
 from .generator import CacheGenerator
+from .oracle import ArchitecturalMemoryOracle
 from .reference_model import CacheParams, ReferenceCache
 from .regression_analysis import write_reports
-from .scoreboard import ScoreboardMismatch
-from .transactions import CacheOp, CacheTxn
+from .scoreboard import Scoreboard, ScoreboardMismatch
+from .transactions import CacheOp, CacheResponse, CacheTxn
 
 
 def run_core_regression(
@@ -30,7 +31,6 @@ def run_core_regression(
             f"crv_seed_{seed}",
             CacheGenerator(cache_params, seed=seed).random_stream(count),
             cache_params,
-            verify_read_data=False,
         )
         for seed in seeds
     ]
@@ -175,7 +175,7 @@ def _run_enhanced_core_seed(seed: int, count: int, params: CacheParams) -> dict[
     gen = CacheGenerator(params, seed=seed)
     txns = gen.random_stream(count)
     history: list[CacheTxn] = []
-    written: dict[int, tuple[int, int]] = {}
+    oracle = ArchitecturalMemoryOracle()
     # Track visited sets so same_set is sampled from real address locality,
     # not a synthetic index modulo. This lets a single CRV seed reach the
     # addr.same_set bin once the hot set is revisited.
@@ -186,6 +186,7 @@ def _run_enhanced_core_seed(seed: int, count: int, params: CacheParams) -> dict[
         latency = 10 if index % 11 == 0 else index % 4
         try:
             response = ref.access(txn)
+            oracle.check_and_apply(txn, response)
             set_idx = (txn.addr // params.line_bytes) % params.sets
             same_set = set_idx in visited_sets
             visited_sets.add(set_idx)
@@ -197,14 +198,6 @@ def _run_enhanced_core_seed(seed: int, count: int, params: CacheParams) -> dict[
                 latency=latency,
                 same_set=same_set,
             )
-
-            # Track writes for deterministic verification.
-            # For CRV, we verify determinism (same seed = same result)
-            # and that the reference model handles all inputs without errors.
-            # Data-value verification is done via directed cases and fault
-            # injection, which have independent expected values.
-            if txn.op is CacheOp.WRITE:
-                written[txn.addr] = (txn.data, txn.mask)
 
         except ScoreboardMismatch as exc:
             print(f"\n*** MISMATCH at seed={seed}, txn_index={index} ***")
@@ -258,24 +251,13 @@ def _run_named_stream(
     params: CacheParams,
     *,
     mark_same_set: bool = False,
-    verify_read_data: bool = True,
 ) -> dict[str, object]:
-    """Run a named stream with independent verification.
-
-    For deterministic streams (smoke, directed), verify_read_data=True
-    validates READ data against tracked WRITEs.
-
-    For CRV streams (random data), verify_read_data=False skips value-level
-    validation since eviction may refill a line from memory with data that
-    differs from the tracked write. CRV correctness is verified via
-    determinism (same seed → same result) and coverage, with data-value
-    verification delegated to directed cases and fault injection.
-    """
+    """Run a model stream with an independent architectural byte oracle."""
     from .coverage import Coverage
 
     ref = ReferenceCache(params)
     cov = Coverage(line_bytes=params.line_bytes)
-    written: dict[int, tuple[int, int]] = {}
+    oracle = ArchitecturalMemoryOracle()
     history: list[CacheTxn] = []
     # When mark_same_set is False (e.g. CRV streams), still sample same_set
     # from real address locality so a single seed can reach the bin.
@@ -286,6 +268,7 @@ def _run_named_stream(
         history.append(txn)
         try:
             response = ref.access(txn)
+            oracle.check_and_apply(txn, response)
             if mark_same_set:
                 same_set = True
             else:
@@ -300,34 +283,6 @@ def _run_named_stream(
                 latency=latency,
                 same_set=same_set,
             )
-
-            if verify_read_data and txn.op is CacheOp.READ and txn.addr in written:
-                prev_data, prev_mask = written[txn.addr]
-                read_mask = (1 << txn.size) - 1
-                effective_mask = prev_mask & read_mask
-                if effective_mask:
-                    actual_bytes = response.data & effective_mask
-                    expected_bytes = prev_data & effective_mask
-                    if actual_bytes != expected_bytes:
-                        raise ScoreboardMismatch(
-                            f"read data mismatch at 0x{txn.addr:x}: "
-                            f"written 0x{prev_data:x} mask 0x{prev_mask:x}, "
-                            f"got 0x{response.data:x}"
-                        )
-
-            if txn.op is CacheOp.WRITE:
-                if txn.addr in written:
-                    old_data, old_mask = written[txn.addr]
-                    merged_data = 0
-                    merged_mask = old_mask | txn.mask
-                    for i in range(txn.size):
-                        if txn.mask & (1 << i):
-                            merged_data |= (txn.data >> (8 * i) & 0xFF) << (8 * i)
-                        elif old_mask & (1 << i):
-                            merged_data |= (old_data >> (8 * i) & 0xFF) << (8 * i)
-                    written[txn.addr] = (merged_data, merged_mask)
-                else:
-                    written[txn.addr] = (txn.data, txn.mask)
 
         except ScoreboardMismatch as exc:
             return {
@@ -441,30 +396,20 @@ def _run_coverage_closure(params: CacheParams) -> dict[str, object]:
     ]
     stream.extend(gen.replacement_sequence(set_idx=1, dirty=True))
     stream.extend(gen.replacement_sequence(set_idx=2, dirty=False))
-    written: dict[int, tuple[int, int]] = {}
+    visited_sets: set[int] = set()
     for index, txn in enumerate(stream):
         response = ref.access(txn)
+        set_idx = (txn.addr // params.line_bytes) % params.sets
+        same_set = set_idx in visited_sets
+        visited_sets.add(set_idx)
         cov.sample_access(
             txn,
             hit=response.hit,
             evicted_dirty=response.evicted_dirty,
             evicted_clean=(response.evicted and not response.evicted_dirty),
             latency=10 if index % 3 == 0 else 1,
-            same_set=index >= 7,
+            same_set=same_set,
         )
-        if txn.op is CacheOp.WRITE:
-            if txn.addr in written:
-                old_data, old_mask = written[txn.addr]
-                merged_data = 0
-                merged_mask = old_mask | txn.mask
-                for i in range(txn.size):
-                    if txn.mask & (1 << i):
-                        merged_data |= (txn.data >> (8 * i) & 0xFF) << (8 * i)
-                    elif old_mask & (1 << i):
-                        merged_data |= (old_data >> (8 * i) & 0xFF) << (8 * i)
-                written[txn.addr] = (merged_data, merged_mask)
-            else:
-                written[txn.addr] = (txn.data, txn.mask)
     return cov.summary()
 
 
@@ -481,16 +426,16 @@ def _run_fault_detection(params: CacheParams) -> dict[str, bool]:
 def _detect_read_corruption(params: CacheParams) -> bool:
     """Write data, then read it back. FaultInjector flips a bit in the read
     response; scoreboard must detect the data mismatch."""
-    ref = ReferenceCache(params)
+    scoreboard = Scoreboard(ReferenceCache(params))
     write = CacheTxn(CacheOp.WRITE, addr=0x100, size=4, data=0x12345678, mask=0xF, txn_id=1)
     read = CacheTxn(CacheOp.READ, addr=0x100, size=4, txn_id=2)
-    ref.access(write)
-    expected = ref.access(read)
+    scoreboard.push_request(write)
+    scoreboard.compare_response(write, CacheResponse(txn_id=write.txn_id))
+    expected = scoreboard.push_request(read)
     faulty = FaultInjector.flip_read_bit(expected, bit=3)
     try:
-        if expected.data != faulty.data:
-            return True
-    except Exception:
+        scoreboard.compare_response(read, faulty)
+    except ScoreboardMismatch:
         return True
     return False
 
@@ -505,56 +450,68 @@ def _detect_partial_write_mask_drop(params: CacheParams) -> bool:
         CacheTxn(CacheOp.WRITE, addr=0x180, size=4, data=0xAABBCCDD, mask=0b0101, txn_id=2),
         CacheTxn(CacheOp.READ, addr=0x180, size=4, txn_id=3),
     ]
-    # Process through good reference
-    for txn in txns:
-        ref_good.access(txn)
-    # Process through faulty reference (mask drop on txn 1)
-    ref_faulty.access(txns[0])
-    ref_faulty.access(FaultInjector.drop_mask_bit(txns[1], bit=0))
-    good_resp = ref_good.access(txns[2])
-    faulty_resp = ref_faulty.access(txns[2])
-    return good_resp.data != faulty_resp.data
+    scoreboard = Scoreboard(ref_good)
+    actual_txns = [txns[0], FaultInjector.drop_mask_bit(txns[1], bit=0), txns[2]]
+    try:
+        for expected_txn, actual_txn in zip(txns, actual_txns, strict=True):
+            scoreboard.push_request(expected_txn)
+            scoreboard.compare_response(expected_txn, ref_faulty.access(actual_txn))
+    except ScoreboardMismatch:
+        return True
+    return False
 
 
 def _detect_dirty_writeback_corruption() -> bool:
     """Write dirty data, evict it. FaultInjector corrupts writeback;
     scoreboard must detect the data mismatch."""
     params = CacheParams(sets=1, ways=1, line_bytes=64)
-    ref = ReferenceCache(params)
+    scoreboard = Scoreboard(ReferenceCache(params))
     write = CacheTxn(CacheOp.WRITE, addr=0x00, size=8, data=0x1122334455667788, mask=0xFF, txn_id=1)
     evict = CacheTxn(CacheOp.READ, addr=0x40, size=8, txn_id=2)
-    ref.access(write)
-    expected = ref.access(evict)
+    scoreboard.push_request(write)
+    scoreboard.compare_response(write, CacheResponse(txn_id=write.txn_id))
+    expected = scoreboard.push_request(evict)
     faulty = FaultInjector.corrupt_writeback_byte(expected)
-    return expected.writeback_data != faulty.writeback_data
+    try:
+        scoreboard.compare_response(evict, faulty)
+    except ScoreboardMismatch:
+        return True
+    return False
 
 
 def _detect_response_order_swap(params: CacheParams) -> bool:
     """Two transactions in sequence; FaultInjector swaps their responses.
     Scoreboard must detect the txn_id order mismatch."""
-    ref = ReferenceCache(params)
+    scoreboard = Scoreboard(ReferenceCache(params))
     txns = [
         CacheTxn(CacheOp.WRITE, addr=0x240, size=4, data=0xCAFEBABE, mask=0xF, txn_id=1),
         CacheTxn(CacheOp.READ, addr=0x240, size=4, txn_id=2),
     ]
-    responses = [ref.access(txn) for txn in txns]
+    responses = [scoreboard.push_request(txn) for txn in txns]
     swapped = FaultInjector.swap_order(responses)
-    # If swapped, txn 1 gets response for txn 2 (wrong txn_id)
-    return responses[0].txn_id != swapped[0].txn_id
+    try:
+        scoreboard.compare_response(txns[0], swapped[0])
+    except ScoreboardMismatch:
+        return True
+    return False
 
 
 def _detect_tag_compare_error(params: CacheParams) -> bool:
     """Write data to fill a cache line, then read it back (should hit).
     FaultInjector flips the hit flag so the scoreboard sees a miss instead.
     The scoreboard must detect the hit/miss mismatch."""
-    ref = ReferenceCache(params)
+    scoreboard = Scoreboard(ReferenceCache(params))
     write = CacheTxn(CacheOp.WRITE, addr=0x300, size=4, data=0xDEADBEEF, mask=0xF, txn_id=1)
     read = CacheTxn(CacheOp.READ, addr=0x300, size=4, txn_id=2)
-    ref.access(write)
-    expected = ref.access(read)
+    scoreboard.push_request(write)
+    scoreboard.compare_response(write, CacheResponse(txn_id=write.txn_id))
+    expected = scoreboard.push_request(read)
     faulty = FaultInjector.flip_tag_match(expected)
-    # A correct read after write should be a hit; the faulty response reports a miss
-    return expected.hit is True and faulty.hit is False
+    try:
+        scoreboard.compare_response(read, faulty)
+    except ScoreboardMismatch:
+        return True
+    return False
 
 
 def _txn_to_dict(txn: CacheTxn) -> dict[str, object]:

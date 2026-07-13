@@ -7,7 +7,8 @@
 - Core 验收：不依赖真实 DUT，验证 Python reference model、generator、scoreboard、coverage、fault injection。
 - DUT 验收：依赖 NutShell Cache Picker/Toffee 接入，验证真实 RTL 行为。
 
-当前仓库已完成 Core 验收与 DUT 验收（真实 NutShell Cache RTL，6 smoke + 16 directed + 8 OOO scoreboard 测试通过，5/5 故障检出，BUG-010/011 RTL 缺陷已定位）。
+当前仓库已完成 Core 与 DUT contract 验收；RealNutShellCache native 验收待兼容
+self-hosted runner 重跑。BUG-010/011/012 当前为源码级发现，不声明动态闭环。
 
 ## 2. Core 验收命令
 
@@ -32,7 +33,7 @@ PYTHONPATH=src .venv/bin/python -m cache_vip.regression --seeds 1,2,3 --count 30
 | 检查项 | 标准 | 当前结果 |
 | --- | --- | --- |
 | Python 语法 | `compileall` 无错误 | PASS |
-| 单元测试 | 全部 pytest 通过 | PASS, 68 passed |
+| 可移植测试 | 全部 pytest 通过 | PASS, 77 passed（以最新 CI 为准） |
 | 回归入口 | `status` 为 `PASS` | PASS |
 | required coverage | 不低于 90% | PASS, 100% |
 | fault detection | 5 类 fault 均检出 | PASS, 5/5 |

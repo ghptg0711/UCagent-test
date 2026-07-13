@@ -1,5 +1,9 @@
 # Coverage Summary Report
 
+> 证据边界：本文的 19-bin 100% 指 Core Reference Model。历史 Real DUT 数字在
+> 兼容 self-hosted runner 重跑前不得作为 sign-off；简化 RTL Verilator coverage
+> 也不得标记为 RealNutShellCache coverage。
+
 ## Overview
 
 | 指标 | 值 |
@@ -99,10 +103,10 @@
 | test_generator_scoreboard.py | 7 | 7 | 0 | 0 |
 | test_memory_agent.py | 1 | 1 | 0 | 0 |
 | test_ooo_scoreboard.py | 8 | 8 | 0 | 0 |
-| test_real_dut_smoke.py | 6 | 6 | 0 | 0 | (WSL2) |
+| test_real_dut_smoke.py | 8 | pending | pending | pending | compatible self-hosted runner |
 | test_reference_model.py | 3 | 3 | 0 | 0 |
 | test_regression.py | 1 | 1 | 0 | 0 |
-| **总计** | **68** | **68** | **0** | **0** |
+| **可移植总计** | **77** | **77** | **0** | **0** | latest local gate |
 
 ## 真实 DUT 覆盖率
 
@@ -110,13 +114,13 @@
 | --- | --- |
 | DUT 类型 | 真实 NutShell Cache (DUTRealNutShellCache) |
 | 测试环境 | WSL2 Ubuntu, Python 3.14.4 |
-| Smoke 测试 | 6/6 PASS |
+| Smoke/defect tests | 8 pending |
 | 定向事务 | 7 笔 |
 | CRV 事务 | 200 笔 (seed=42) |
-| 功能覆盖率 | 100% (19/19 bins) |
-| Verilator 代码覆盖率 | coverage.dat (163K), coverage.info (23K) — 见 reports/verilator_coverage/ |
-| 仿真周期 | 200,000 cycles (Verilator) + 250,010 cycles (大规模回归) |
-| 波形文件 | nutshell_cache_trace.vcd (12MB) — 见 reports/waveforms/ |
+| 功能覆盖率 | 待重跑；不得以 core 19/19 替代 |
+| Verilator 代码覆盖率 | 待 RealNutShellCache `--coverage` 重建 |
+| 仿真周期 | 待读取 Real DUT `cycle_count` 后重报 |
+| 波形文件 | 待生成并上传 RealNutShellCache VCD/FST artifact |
 
 ## Verilator 第三方覆盖率
 

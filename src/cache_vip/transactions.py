@@ -43,9 +43,14 @@ class CacheTxn:
 class CacheResponse:
     txn_id: int
     data: int = 0
-    hit: bool = False
+    hit: bool | None = False
     evicted: bool = False
     evicted_dirty: bool = False
     writeback_addr: int | None = None
     writeback_data: bytes | None = None
     error: str | None = None
+    observed_fields: frozenset[str] | None = None
+
+    def observes(self, field_name: str) -> bool:
+        """Return whether *field_name* came from a DUT-visible signal."""
+        return self.observed_fields is None or field_name in self.observed_fields

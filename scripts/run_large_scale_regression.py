@@ -14,7 +14,10 @@ from datetime import datetime
 from pathlib import Path
 
 from cache_vip.coverage import Coverage
-from cache_vip.generator import CacheGenerator
+from cache_vip.dut_regression import DUTRegressionRunner
+from cache_vip.generator import CacheGenerator, GeneratorProfile
+from cache_vip.oracle import ArchitecturalMemoryOracle
+from cache_vip.real_dut_config import REAL_DUT_CACHE_PARAMS
 from cache_vip.reference_model import CacheParams, ReferenceCache
 from cache_vip.transactions import CacheOp
 
@@ -34,7 +37,7 @@ async def run_large_scale_regression(
     use_real_dut: bool = True,
 ) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
-    params = CacheParams()
+    params = REAL_DUT_CACHE_PARAMS if use_real_dut else CacheParams()
     total_txns = 0
     total_cycles = 0
     total_passed = 0
@@ -65,42 +68,47 @@ async def run_large_scale_regression(
 
         ref = ReferenceCache(params)
         cov = Coverage(line_bytes=params.line_bytes)
-        gen = CacheGenerator(params, seed=seed)
+        gen = CacheGenerator(params, seed=seed, profile=GeneratorProfile(uncached_weight=0))
         txns = gen.random_stream(txns_per_seed)
-        written: dict[int, tuple[int, int]] = {}
         passed = 0
         failed = 0
         cycle_count = 0
         visited_sets: set[int] = set()
+        oracle = ArchitecturalMemoryOracle()
+        dut_runner = None
+        if real_adapter:
+            await real_adapter.reset(clear_memory=True)
+            dut_runner = DUTRegressionRunner(real_adapter)
 
         for i, txn in enumerate(txns):
             if i % 100 == 0:
                 print(f"  Progress: {i}/{txns_per_seed} transactions")
 
             try:
-                if real_adapter:
-                    await real_adapter.drive_cpu_request(txn)
-                    response = await real_adapter.sample_cpu_response()
+                if dut_runner:
+                    response = await dut_runner.execute(txn)
                 else:
                     response = ref.access(txn)
+                    oracle.check_and_apply(txn, response)
 
                 latency = 10 if i % 11 == 0 else i % 4
                 same_set = _is_same_set_revisit(txn.addr, params, visited_sets)
-                # Each transaction requires handshake + memory access + response
-                # Realistic cycle estimate: handshake(2) + memory(4-8) + response(2)
-                cycle_count += max(latency, 1) + 10
+                if real_adapter:
+                    cycle_count = real_adapter.cycle_count
+                else:
+                    cycle_count += max(latency, 1) + 10
 
-                cov.sample_access(
-                    txn,
-                    hit=response.hit,
-                    evicted_dirty=response.evicted_dirty,
-                    evicted_clean=(response.evicted and not response.evicted_dirty),
-                    latency=latency,
-                    same_set=same_set,
-                )
-
-                if txn.op is CacheOp.WRITE:
-                    written[txn.addr] = (txn.data, txn.mask)
+                if dut_runner:
+                    cov = dut_runner.coverage
+                else:
+                    cov.sample_access(
+                        txn,
+                        hit=response.hit,
+                        evicted_dirty=response.evicted_dirty,
+                        evicted_clean=(response.evicted and not response.evicted_dirty),
+                        latency=latency,
+                        same_set=same_set,
+                    )
 
                 passed += 1
             except Exception as e:

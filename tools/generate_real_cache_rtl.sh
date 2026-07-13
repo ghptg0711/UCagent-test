@@ -1,54 +1,80 @@
 #!/usr/bin/env bash
+# Generate RealNutShellCache SystemVerilog from the pinned NutShell source.
+
 set -euo pipefail
 
-UCAGENT=/mnt/d/UCagent
-NUTSHELL="$UCAGENT/NutShell"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly ROOT_DIR
+readonly NUTSHELL_COMMIT="041f694965728ea183a0622daa1734002bf4621e"
+readonly NUTSHELL_DIR="${NUTSHELL_DIR:-${ROOT_DIR}/NutShell}"
+readonly OUTPUT_DIR="${REAL_DUT_RTL_DIR:-${ROOT_DIR}/rtl/generated_real_src}"
+readonly MILL_BIN="${MILL_BIN:-mill}"
+readonly SCALA_VERSION="2.13.14"
 
-cd "$NUTSHELL"
+if [[ ! -d "${NUTSHELL_DIR}/.git" ]]; then
+    echo "ERROR: clone the pinned NutShell repository at ${NUTSHELL_DIR}" >&2
+    exit 2
+fi
+if [[ "$(git -C "${NUTSHELL_DIR}" rev-parse HEAD)" != "${NUTSHELL_COMMIT}" ]]; then
+    echo "ERROR: NutShell must be checked out at ${NUTSHELL_COMMIT}" >&2
+    exit 2
+fi
+if ! command -v "${MILL_BIN}" >/dev/null 2>&1; then
+    echo "ERROR: Mill 0.11.7 is required" >&2
+    exit 2
+fi
 
-export NOOP_HOME="$NUTSHELL"
-export MILL_JVM_OPTS=-Xmx4G
-MILL=/home/gh0711/.cache/mill/download/0.11.7
+export NOOP_HOME="${NUTSHELL_DIR}"
+export MILL_JVM_OPTS="${MILL_JVM_OPTS:--Xmx4G}"
 
-git -c http.version=HTTP/1.1 submodule update --init --force --depth=1 difftest
+git -C "${NUTSHELL_DIR}" -c http.version=HTTP/1.1 \
+    submodule update --init --force --depth=1 difftest
 
-env NOOP_HOME="$NOOP_HOME" MILL_JVM_OPTS="$MILL_JVM_OPTS" \
-  "$MILL" --no-server --disable-ticker generator.compile
+(cd "${NUTSHELL_DIR}" && "${MILL_BIN}" --no-server --disable-ticker generator.compile)
+classpath_json="$(mktemp)"
+trap 'rm -f "${classpath_json}"' EXIT
+(cd "${NUTSHELL_DIR}" && "${MILL_BIN}" --no-server --disable-ticker \
+    show generator.runClasspath) >"${classpath_json}"
 
-env NOOP_HOME="$NOOP_HOME" MILL_JVM_OPTS="$MILL_JVM_OPTS" \
-  "$MILL" --no-server --disable-ticker show generator.runClasspath >/tmp/nutshell_generator_runclasspath.json
-
-rm -rf out/manual-realcache
-mkdir -p out/manual-realcache/classes
-
-CP=$(python3 - <<'PY'
+runtime_cp="$(python3 - "${classpath_json}" <<'PY'
 import json
-items = json.load(open("out/generator/runClasspath.json"))["value"]
-paths = []
-for item in items:
-    path = item.split(":", 3)[-1] if item.startswith(("qref:", "ref:")) else item
-    paths.append(path)
-print(":".join(paths))
+import sys
+
+items = json.load(open(sys.argv[1], encoding="utf-8"))["value"]
+print(":".join(item.split(":", 3)[-1] if item.startswith(("qref:", "ref:")) else item for item in items))
 PY
-)
+)"
 
-COMPILER=/home/gh0711/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.14/scala-compiler-2.13.14.jar
-LIBRARY=/home/gh0711/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar
-REFLECT=/home/gh0711/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.14/scala-reflect-2.13.14.jar
-PLUGIN=/home/gh0711/.cache/coursier/v1/https/repo1.maven.org/maven2/org/chipsalliance/chisel-plugin_2.13.14/7.11.0/chisel-plugin_2.13.14-7.11.0.jar
+find_jar() {
+    local pattern="$1"
+    local jar
+    jar="$(find "${HOME}/.cache/coursier" -type f -name "${pattern}" -print -quit)"
+    if [[ -z "${jar}" ]]; then
+        echo "ERROR: dependency jar not found: ${pattern}" >&2
+        exit 2
+    fi
+    printf '%s' "${jar}"
+}
 
-java -cp "$COMPILER:$LIBRARY:$REFLECT" scala.tools.nsc.Main \
-  -cp "$CP" \
-  -d out/manual-realcache/classes \
-  -Xplugin:"$PLUGIN" \
-  -Ymacro-annotations \
-  "$UCAGENT/tools/RealCacheMain.scala"
+compiler="$(find_jar "scala-compiler-${SCALA_VERSION}.jar")"
+library="$(find_jar "scala-library-${SCALA_VERSION}.jar")"
+reflect="$(find_jar "scala-reflect-${SCALA_VERSION}.jar")"
+plugin="$(find_jar "chisel-plugin_${SCALA_VERSION}-*.jar")"
+classes_dir="${NUTSHELL_DIR}/out/manual-realcache/classes"
+rm -rf "${classes_dir}"
+mkdir -p "${classes_dir}"
 
-rm -rf build/cache_rtl
-mkdir -p build/cache_rtl
+java -cp "${compiler}:${library}:${reflect}" scala.tools.nsc.Main \
+    -cp "${runtime_cp}" \
+    -d "${classes_dir}" \
+    -Xplugin:"${plugin}" \
+    -Ymacro-annotations \
+    "${ROOT_DIR}/tools/RealCacheMain.scala"
 
-java -cp "out/manual-realcache/classes:$CP" top.RealCacheMain \
-  --target-dir "$NUTSHELL/build/cache_rtl" \
-  --split-verilog
+rm -rf "${OUTPUT_DIR}"
+mkdir -p "${OUTPUT_DIR}"
+java -cp "${classes_dir}:${runtime_cp}" top.RealCacheMain \
+    --target-dir "${OUTPUT_DIR}" \
+    --split-verilog
 
-find build/cache_rtl -maxdepth 1 -type f | sort
+find "${OUTPUT_DIR}" -maxdepth 1 -type f -print | sort

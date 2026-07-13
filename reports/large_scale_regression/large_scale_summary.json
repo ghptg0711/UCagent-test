@@ -3,6 +3,8 @@
   "total_seeds": 10,
   "total_transactions": 20000,
   "total_cycles": 250010,
+  "cycle_measurement": "historical_estimate_not_dut_cycles",
+  "evidence_status": "HISTORICAL_NON_SIGNOFF",
   "total_passed": 20000,
   "total_failed": 0,
   "pass_rate": 100.0,

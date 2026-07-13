@@ -1,5 +1,9 @@
 # Large Scale Regression Report
 
+> 历史记录：该版本将“无 Python 异常”计为 PASS 且 cycle 为估算值，没有独立
+> expected/actual Scoreboard。整改后的 runner 会执行数据比较并读取 DUT cycle；
+> 本表在重跑前不作为真实 DUT sign-off 证据。
+
 Generated: 2026-07-13T16:22:37.091404
 
 ## Summary

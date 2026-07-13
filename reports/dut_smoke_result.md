@@ -1,5 +1,8 @@
 # DUT Smoke Test Result Report
 
+> 历史记录：当前 GitHub-hosted runner 无法执行 `-march=native` 的 Real DUT `.so`。
+> 本文结果须由兼容 self-hosted runner 的最新 CI 日志重新确认后方可用于提交证据。
+
 **测试日期：** 2026-07-10
 **DUT 类型：** 真实 NutShell Cache (DUTRealNutShellCache, WSL2 环境)
 
