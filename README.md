@@ -2,6 +2,10 @@
 
 ![Verification](https://github.com/ghptg0711/UCagent-test/actions/workflows/verification.yml/badge.svg)
 
+> 仓库地址：
+> - GitLink（主）：https://www.gitlink.org.cn/putaoptg/UCagent-test
+> - GitHub（镜像）：https://github.com/ghptg0711/UCagent-test
+
 ## Overview
 
 本项目基于 **UCAgent**（AI 驱动验证智能体）完成对开源 RISC-V 处理器 [NutShell](https://github.com/OpenXiangShan/NutShell) 中 **Cache 子系统**的自动化功能验证。
