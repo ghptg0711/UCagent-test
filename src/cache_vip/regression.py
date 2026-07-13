@@ -101,7 +101,9 @@ def run_enhanced_regression(
         results["core_regression"].append(result)
         status = result["status"]
         print(
-            f"[Core Seed {seed}] Status: {status}, Txns: {result['transactions']}, Coverage: {result['coverage_percent']}%"
+            f"[Core Seed {seed}] Status: {status}, "
+            f"Txns: {result['transactions']}, "
+            f"Coverage: {result['coverage_percent']}%"
         )
         if status == "FAIL":
             print(f"  Error at txn #{result['error_txn_id']}: {result['error']}")
@@ -128,7 +130,9 @@ def run_enhanced_regression(
             results["dut_regression"].append(result)
             status = result["status"]
             print(
-                f"[DUT Seed {seed}] Status: {status}, Txns: {result['transactions']}, Coverage: {result['coverage_percent']}%"
+                f"[DUT Seed {seed}] Status: {status}, "
+                f"Txns: {result['transactions']}, "
+                f"Coverage: {result['coverage_percent']}%"
             )
             if status == "FAIL":
                 print(f"  Error at txn #{result['error_txn_id']}: {result['error']}")
@@ -401,9 +405,42 @@ def _run_coverage_closure(params: CacheParams) -> dict[str, object]:
         CacheTxn(CacheOp.WRITE, addr=0x10, size=4, data=0x11223344, mask=0b0101, txn_id=5),
         CacheTxn(CacheOp.WRITE, addr=0x18, size=8, data=0xAABBCCDDEEFF0011, mask=0xFF, txn_id=6),
         CacheTxn(CacheOp.READ, addr=0x38, size=8, txn_id=7),
+        CacheTxn(CacheOp.WRITE, addr=0x40, size=1, data=0x5A, mask=0x1, txn_id=8),
     ]
     stream.extend(gen.replacement_sequence(set_idx=1, dirty=True))
     stream.extend(gen.replacement_sequence(set_idx=2, dirty=False))
+
+    line_bytes = params.line_bytes
+    ways = params.ways
+    sets = params.sets
+    base_set = 3
+    base_addr = base_set * line_bytes
+
+    def addr_for_way_set(way: int, set_idx: int) -> int:
+        return set_idx * line_bytes + way * sets * line_bytes
+
+    clean_write_miss_stream: list[CacheTxn] = []
+    for w in range(ways):
+        clean_write_miss_stream.append(
+            CacheTxn(
+                CacheOp.READ,
+                addr=addr_for_way_set(w, base_set),
+                size=4,
+                txn_id=1000 + w,
+            )
+        )
+    clean_write_miss_stream.append(
+        CacheTxn(
+            CacheOp.WRITE,
+            addr=addr_for_way_set(ways, base_set),
+            size=4,
+            data=0xE1C701A0,
+            mask=0xF,
+            txn_id=1000 + ways,
+        )
+    )
+    stream.extend(clean_write_miss_stream)
+
     visited_sets: set[int] = set()
     for index, txn in enumerate(stream):
         response = ref.access(txn)
@@ -420,6 +457,44 @@ def _run_coverage_closure(params: CacheParams) -> dict[str, object]:
             replacement_policy=params.replacement.value,
             write_allocate=params.write_allocate,
         )
+
+    from .reference_model import ReplacementPolicy
+
+    fifo_params = CacheParams(
+        sets=params.sets,
+        ways=params.ways,
+        line_bytes=params.line_bytes,
+        replacement=ReplacementPolicy.FIFO,
+        write_allocate=params.write_allocate,
+    )
+    fifo_ref = ReferenceCache(fifo_params)
+    fifo_gen = CacheGenerator(fifo_params, seed=23)
+    fifo_stream = fifo_gen.replacement_sequence(set_idx=0, dirty=True)
+    fifo_base_id = 5000
+    for i, txn in enumerate(fifo_stream):
+        new_txn = CacheTxn(
+            txn.op,
+            addr=txn.addr,
+            size=txn.size,
+            data=txn.data,
+            mask=txn.mask,
+            txn_id=fifo_base_id + i,
+            uncached=txn.uncached,
+        )
+        response = fifo_ref.access(new_txn)
+        set_idx = (new_txn.addr // fifo_params.line_bytes) % fifo_params.sets
+        same_set = True
+        cov.sample_access(
+            new_txn,
+            hit=response.hit,
+            evicted_dirty=response.evicted_dirty,
+            evicted_clean=(response.evicted and not response.evicted_dirty),
+            latency=5,
+            same_set=same_set,
+            replacement_policy="fifo",
+            write_allocate=fifo_params.write_allocate,
+        )
+
     return cov.summary()
 
 

@@ -87,6 +87,8 @@ class Coverage:
         if txn.mask == full_mask:
             mask_type = "full"
             self.bins["mask.full"] += 1
+            if txn.size == 1:
+                self.bins["mask.single"] += 1
         elif txn.mask and txn.mask & (txn.mask - 1) == 0:
             mask_type = "single"
             self.bins["mask.single"] += 1
@@ -130,7 +132,7 @@ class Coverage:
             self.bins["cross.size_mask.size8_full"] += 1
         if txn.size == 4 and mask_type == "sparse":
             self.bins["cross.size_mask.size4_sparse"] += 1
-        if txn.size == 1 and mask_type == "single":
+        if txn.size == 1 and mask_type in ("single", "full"):
             self.bins["cross.size_mask.size1_single"] += 1
 
         if evicted_dirty and hit is False and txn.op.value == "read":

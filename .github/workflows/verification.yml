@@ -33,12 +33,25 @@ jobs:
       - name: Run core regression
         run: |
           PYTHONPATH=src python -m cache_vip.regression --seeds 1,2,3 --count 500 --report-dir reports/regression-results
+      - name: Generate AI contribution report
+        run: |
+          PYTHONPATH=src python -m cache_vip.ai_contribution_analyzer --repo-root . \
+            --json-output reports/ai_contribution_report.json \
+            --md-output reports/ai_contribution_report.md
       - name: Upload core regression report
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: core-regression-report
           path: reports/regression-results/
+      - name: Upload AI contribution report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: ai-contribution-report
+          path: |
+            reports/ai_contribution_report.json
+            reports/ai_contribution_report.md
 
   dut-contract-tests:
     runs-on: ubuntu-latest

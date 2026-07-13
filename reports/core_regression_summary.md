@@ -22,26 +22,27 @@ Status: `PASS`
 | Bin | Hits |
 | --- | ---: |
 | `access.read_hit` | 2 |
-| `access.read_miss` | 8 |
-| `access.write_hit` | 4 |
-| `access.write_miss` | 5 |
+| `access.read_miss` | 13 |
+| `access.write_hit` | 5 |
+| `access.write_miss` | 11 |
 | `addr.line_boundary` | 1 |
-| `addr.same_set` | 16 |
-| `latency.long` | 7 |
-| `latency.short` | 12 |
-| `mask.full` | 17 |
-| `mask.single` | 1 |
+| `addr.same_set` | 27 |
+| `latency.long` | 9 |
+| `latency.short` | 22 |
+| `mask.full` | 29 |
+| `mask.single` | 4 |
 | `mask.sparse` | 1 |
-| `op.read` | 10 |
-| `op.write` | 9 |
-| `replacement.clean` | 2 |
-| `replacement.dirty` | 2 |
-| `size.1` | 2 |
+| `op.read` | 15 |
+| `op.write` | 16 |
+| `replacement.clean` | 3 |
+| `replacement.dirty` | 4 |
+| `size.1` | 3 |
 | `size.2` | 2 |
-| `size.4` | 1 |
-| `size.8` | 14 |
+| `size.4` | 6 |
+| `size.8` | 20 |
 
 ## CRV
 
-- crv_seed_1: `200` transactions, status `PASS`, coverage `100.0%`
-- crv_seed_2: `200` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_1: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_2: `300` transactions, status `PASS`, coverage `100.0%`
+- crv_seed_3: `300` transactions, status `PASS`, coverage `100.0%`

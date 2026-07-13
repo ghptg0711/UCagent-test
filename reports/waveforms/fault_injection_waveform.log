@@ -1,0 +1,55 @@
+=== Fault Injection Waveform Evidence ===
+Generated: 2026-07-13T23:35:26.113170
+DUT: Mock DUT (ReferenceCache) with fault injection
+Config: sets=64, ways=4, line_bytes=64
+
+--- Fault 1: Read Data Bit-Flip ---
+  Cycle 1: INJECT bit-flip on read response
+    Expected data: 0x12345678
+    Corrupted data: 0x12345670
+  Cycle 1: DETECTED ScoreboardMismatch
+    Error: read data mismatch txn_id=2 addr=0x100: expected 0x12345678, got 0x12345670
+
+--- Fault 2: Write Mask Drop ---
+  Cycle 1: INJECT mask bit drop on write
+    Original mask: 0x5, Corrupted mask: 0x4
+  Cycle 2: DETECTED ScoreboardMismatch
+    Error: read data mismatch txn_id=12 addr=0x200: expected 0xaa22cc44, got 0xaa22ccdd
+
+--- Fault 3: Dirty Writeback Data Corruption ---
+  Cycle 1: INJECT writeback data corruption
+    Writeback addr: 0x0
+    Corrupted writeback data: 89776655443322110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  Cycle 1: DETECTED ScoreboardMismatch
+    Error: writeback data mismatch txn_id=21
+
+--- Fault 4: Response Order Swap ---
+  Cycle 0: INJECT response order swap
+    txn1=30 data=0x0
+    txn2=31 data=0x0
+    Swapped: txn1 gets 0x0, txn2 gets 0x0
+  Cycle 0: DETECTED ScoreboardMismatch
+    Error: txn order mismatch: expected 30, got 31
+
+--- Fault 5: Tag Compare Error ---
+  Cycle 1: INJECT tag compare error
+    Original hit=True, Corrupted hit=False
+  Cycle 1: DETECTED ScoreboardMismatch
+    Error: hit/miss mismatch txn_id=41 addr=0x0: expected hit=True, got hit=False
+
+--- Fault 6: Writeback Address Corruption ---
+  Cycle 1: INJECT writeback address corruption
+    Original writeback addr: 0x0
+    Corrupted writeback addr: 0x40
+  Cycle 1: DETECTED ScoreboardMismatch
+    Error: writeback addr mismatch txn_id=51: expected 0, got 64
+
+=== Summary ===
+Total faults injected: 6
+Faults detected: 6/6
+  read_corruption: DETECTED
+  partial_write_mask_drop: DETECTED
+  dirty_writeback_corruption: DETECTED
+  response_order_swap: DETECTED
+  tag_compare_error: DETECTED
+  writeback_addr_corruption: DETECTED

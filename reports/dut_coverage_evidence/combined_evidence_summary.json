@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-07-13T23:35:26.115666",
+  "coverage_evidence": {
+    "dut_type": "Mock DUT (ReferenceCache with full observability)",
+    "timestamp": "2026-07-13T23:35:26.112162",
+    "config": {
+      "sets": 64,
+      "ways": 4,
+      "line_bytes": 64,
+      "replacement": "lru",
+      "write_allocate": true
+    },
+    "directed_transactions": 64,
+    "crv_results": [
+      {
+        "seed": 1,
+        "transactions": 500,
+        "passed": 500,
+        "failed": 0
+      },
+      {
+        "seed": 2,
+        "transactions": 500,
+        "passed": 500,
+        "failed": 0
+      },
+      {
+        "seed": 3,
+        "transactions": 500,
+        "passed": 500,
+        "failed": 0
+      }
+    ],
+    "fifo_evictions": 2,
+    "total_transactions": 1575,
+    "coverage": {
+      "coverage_percent": 100.0,
+      "covered_bins": 19,
+      "total_bins": 19,
+      "missing": [],
+      "bins": {
+        "access.read_hit": 147,
+        "access.read_miss": 744,
+        "access.write_hit": 118,
+        "access.write_miss": 566,
+        "addr.line_boundary": 275,
+        "addr.same_set": 11,
+        "latency.long": 1294,
+        "latency.short": 281,
+        "mask.full": 1308,
+        "mask.single": 569,
+        "mask.sparse": 80,
+        "op.read": 891,
+        "op.write": 684,
+        "replacement.clean": 515,
+        "replacement.dirty": 462,
+        "size.1": 382,
+        "size.2": 385,
+        "size.4": 376,
+        "size.8": 432
+      },
+      "extended_coverage_percent": 100.0,
+      "extended_covered": 12,
+      "extended_total": 12,
+      "extended_missing": [],
+      "extended_bins": {
+        "addr.back_to_back_same_line": 33,
+        "addr.stride_access_pattern": 1,
+        "cross.access_latency.read_miss_long": 733,
+        "cross.access_latency.write_hit_short": 114,
+        "cross.replacement_type.clean_write_miss": 216,
+        "cross.replacement_type.dirty_read_miss": 270,
+        "cross.size_mask.size1_single": 382,
+        "cross.size_mask.size4_sparse": 28,
+        "cross.size_mask.size8_full": 332,
+        "policy.replacement.fifo_eviction": 2,
+        "policy.replacement.lru_eviction": 975,
+        "policy.write_allocate.write_miss_alloc": 566
+      }
+    },
+    "status": "PASS",
+    "evidence_note": "This report uses a Mock DUT (ReferenceCache) with full internal signal observability. All 19 required bins and 12 extended bins are covered. This serves as the coverage model correctness proof and reference baseline for Real DUT coverage comparison."
+  },
+  "waveform_evidence": {
+    "log_path": "reports\\waveforms\\fault_injection_waveform.log",
+    "faults_injected": 6,
+    "faults_detected": 6,
+    "fault_details": {
+      "read_corruption": true,
+      "partial_write_mask_drop": true,
+      "dirty_writeback_corruption": true,
+      "response_order_swap": true,
+      "tag_compare_error": true,
+      "writeback_addr_corruption": true
+    }
+  },
+  "conclusion": "Mock DUT coverage: 100.0% required, 100.0% extended. Fault detection: 6/6 faults detected. All evidence generated on portable platform. Real DUT coverage requires self-hosted runner with Picker/xspcomm."
+}

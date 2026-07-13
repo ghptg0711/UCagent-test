@@ -1,0 +1,422 @@
+{
+  "total_files": 45,
+  "total_lines": 8939,
+  "ai_generated_lines": 3958,
+  "ai_assisted_lines": 156,
+  "human_reviewed_lines": 4014,
+  "human_original_lines": 811,
+  "ai_percentage": 46.0,
+  "human_percentage": 54.0,
+  "per_author": {
+    "UCagent Team": 4040,
+    "ghptg0711": 4825,
+    "Not Committed Yet": 74
+  },
+  "per_file": {
+    "scripts/export_waveform.py": {
+      "total_lines": 78,
+      "ai_generated": 73,
+      "human_reviewed": 0,
+      "human_original": 5,
+      "ai_assisted": 0,
+      "ai_pct": 93.6,
+      "human_pct": 6.4
+    },
+    "scripts/generate_convergence_chart.py": {
+      "total_lines": 257,
+      "ai_generated": 0,
+      "human_reviewed": 257,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "scripts/generate_coverage_trend.py": {
+      "total_lines": 163,
+      "ai_generated": 8,
+      "human_reviewed": 0,
+      "human_original": 155,
+      "ai_assisted": 0,
+      "ai_pct": 4.9,
+      "human_pct": 95.1
+    },
+    "scripts/run_large_scale_regression.py": {
+      "total_lines": 215,
+      "ai_generated": 161,
+      "human_reviewed": 30,
+      "human_original": 24,
+      "ai_assisted": 0,
+      "ai_pct": 74.9,
+      "human_pct": 25.1
+    },
+    "scripts/summarize_coverage.py": {
+      "total_lines": 92,
+      "ai_generated": 71,
+      "human_reviewed": 0,
+      "human_original": 6,
+      "ai_assisted": 15,
+      "ai_pct": 77.2,
+      "human_pct": 6.5
+    },
+    "scripts/verify_p1.py": {
+      "total_lines": 60,
+      "ai_generated": 58,
+      "human_reviewed": 0,
+      "human_original": 2,
+      "ai_assisted": 0,
+      "ai_pct": 96.7,
+      "human_pct": 3.3
+    },
+    "src/cache_vip/ai_contribution_analyzer.py": {
+      "total_lines": 0,
+      "ai_generated": 0,
+      "human_reviewed": 0,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 0.0
+    },
+    "src/cache_vip/coverage.py": {
+      "total_lines": 194,
+      "ai_generated": 68,
+      "human_reviewed": 101,
+      "human_original": 25,
+      "ai_assisted": 0,
+      "ai_pct": 35.1,
+      "human_pct": 64.9
+    },
+    "src/cache_vip/coverage_analyzer.py": {
+      "total_lines": 546,
+      "ai_generated": 0,
+      "human_reviewed": 546,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/cross_validation.py": {
+      "total_lines": 430,
+      "ai_generated": 0,
+      "human_reviewed": 430,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/dut_regression.py": {
+      "total_lines": 63,
+      "ai_generated": 0,
+      "human_reviewed": 63,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/fallacy_detector.py": {
+      "total_lines": 434,
+      "ai_generated": 0,
+      "human_reviewed": 434,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/faults.py": {
+      "total_lines": 57,
+      "ai_generated": 44,
+      "human_reviewed": 13,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 77.2,
+      "human_pct": 22.8
+    },
+    "src/cache_vip/generator.py": {
+      "total_lines": 304,
+      "ai_generated": 269,
+      "human_reviewed": 0,
+      "human_original": 35,
+      "ai_assisted": 0,
+      "ai_pct": 88.5,
+      "human_pct": 11.5
+    },
+    "src/cache_vip/memory_agent.py": {
+      "total_lines": 226,
+      "ai_generated": 210,
+      "human_reviewed": 0,
+      "human_original": 16,
+      "ai_assisted": 0,
+      "ai_pct": 92.9,
+      "human_pct": 7.1
+    },
+    "src/cache_vip/ooo_scoreboard.py": {
+      "total_lines": 171,
+      "ai_generated": 106,
+      "human_reviewed": 65,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 62.0,
+      "human_pct": 38.0
+    },
+    "src/cache_vip/oracle.py": {
+      "total_lines": 28,
+      "ai_generated": 0,
+      "human_reviewed": 28,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/prompt_bug_matrix.py": {
+      "total_lines": 495,
+      "ai_generated": 0,
+      "human_reviewed": 495,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/real_dut_adapter.py": {
+      "total_lines": 355,
+      "ai_generated": 282,
+      "human_reviewed": 55,
+      "human_original": 18,
+      "ai_assisted": 0,
+      "ai_pct": 79.4,
+      "human_pct": 20.6
+    },
+    "src/cache_vip/real_dut_config.py": {
+      "total_lines": 7,
+      "ai_generated": 0,
+      "human_reviewed": 7,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/reference_model.py": {
+      "total_lines": 213,
+      "ai_generated": 204,
+      "human_reviewed": 0,
+      "human_original": 9,
+      "ai_assisted": 0,
+      "ai_pct": 95.8,
+      "human_pct": 4.2
+    },
+    "src/cache_vip/regression.py": {
+      "total_lines": 689,
+      "ai_generated": 467,
+      "human_reviewed": 54,
+      "human_original": 168,
+      "ai_assisted": 0,
+      "ai_pct": 67.8,
+      "human_pct": 32.2
+    },
+    "src/cache_vip/regression_analysis.py": {
+      "total_lines": 107,
+      "ai_generated": 91,
+      "human_reviewed": 0,
+      "human_original": 16,
+      "ai_assisted": 0,
+      "ai_pct": 85.0,
+      "human_pct": 15.0
+    },
+    "src/cache_vip/rtl_trajectory.py": {
+      "total_lines": 266,
+      "ai_generated": 0,
+      "human_reviewed": 266,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/scoreboard.py": {
+      "total_lines": 90,
+      "ai_generated": 56,
+      "human_reviewed": 22,
+      "human_original": 12,
+      "ai_assisted": 0,
+      "ai_pct": 62.2,
+      "human_pct": 37.8
+    },
+    "src/cache_vip/semantic_tracker.py": {
+      "total_lines": 464,
+      "ai_generated": 0,
+      "human_reviewed": 464,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "src/cache_vip/toffee_adapter.py": {
+      "total_lines": 178,
+      "ai_generated": 172,
+      "human_reviewed": 0,
+      "human_original": 6,
+      "ai_assisted": 0,
+      "ai_pct": 96.6,
+      "human_pct": 3.4
+    },
+    "src/cache_vip/transactions.py": {
+      "total_lines": 56,
+      "ai_generated": 50,
+      "human_reviewed": 6,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 89.3,
+      "human_pct": 10.7
+    },
+    "tests/mock_dut.py": {
+      "total_lines": 219,
+      "ai_generated": 182,
+      "human_reviewed": 0,
+      "human_original": 37,
+      "ai_assisted": 0,
+      "ai_pct": 83.1,
+      "human_pct": 16.9
+    },
+    "tests/test_coverage_trend.py": {
+      "total_lines": 53,
+      "ai_generated": 0,
+      "human_reviewed": 0,
+      "human_original": 53,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "tests/test_directed_cases.py": {
+      "total_lines": 399,
+      "ai_generated": 329,
+      "human_reviewed": 0,
+      "human_original": 70,
+      "ai_assisted": 0,
+      "ai_pct": 82.5,
+      "human_pct": 17.5
+    },
+    "tests/test_dut_regression.py": {
+      "total_lines": 45,
+      "ai_generated": 0,
+      "human_reviewed": 45,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "tests/test_dut_smoke.py": {
+      "total_lines": 182,
+      "ai_generated": 120,
+      "human_reviewed": 0,
+      "human_original": 62,
+      "ai_assisted": 0,
+      "ai_pct": 65.9,
+      "human_pct": 34.1
+    },
+    "tests/test_edge_cases.py": {
+      "total_lines": 619,
+      "ai_generated": 469,
+      "human_reviewed": 132,
+      "human_original": 18,
+      "ai_assisted": 0,
+      "ai_pct": 75.8,
+      "human_pct": 24.2
+    },
+    "tests/test_generator_scoreboard.py": {
+      "total_lines": 124,
+      "ai_generated": 120,
+      "human_reviewed": 0,
+      "human_original": 4,
+      "ai_assisted": 0,
+      "ai_pct": 96.8,
+      "human_pct": 3.2
+    },
+    "tests/test_memory_agent.py": {
+      "total_lines": 27,
+      "ai_generated": 15,
+      "human_reviewed": 0,
+      "human_original": 12,
+      "ai_assisted": 0,
+      "ai_pct": 55.6,
+      "human_pct": 44.4
+    },
+    "tests/test_ooo_scoreboard.py": {
+      "total_lines": 244,
+      "ai_generated": 113,
+      "human_reviewed": 131,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 46.3,
+      "human_pct": 53.7
+    },
+    "tests/test_real_dut_adapter_unit.py": {
+      "total_lines": 217,
+      "ai_generated": 0,
+      "human_reviewed": 217,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "tests/test_real_dut_smoke.py": {
+      "total_lines": 199,
+      "ai_generated": 77,
+      "human_reviewed": 86,
+      "human_original": 25,
+      "ai_assisted": 11,
+      "ai_pct": 38.7,
+      "human_pct": 55.8
+    },
+    "tests/test_reference_model.py": {
+      "total_lines": 34,
+      "ai_generated": 34,
+      "human_reviewed": 0,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 100.0,
+      "human_pct": 0.0
+    },
+    "tests/test_regression.py": {
+      "total_lines": 11,
+      "ai_generated": 11,
+      "human_reviewed": 0,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 100.0,
+      "human_pct": 0.0
+    },
+    "tests/test_regression_oracle.py": {
+      "total_lines": 39,
+      "ai_generated": 0,
+      "human_reviewed": 39,
+      "human_original": 0,
+      "ai_assisted": 0,
+      "ai_pct": 0.0,
+      "human_pct": 100.0
+    },
+    "tools/check_repo_health.py": {
+      "total_lines": 145,
+      "ai_generated": 0,
+      "human_reviewed": 0,
+      "human_original": 15,
+      "ai_assisted": 130,
+      "ai_pct": 0.0,
+      "human_pct": 10.3
+    },
+    "tools/dump_signals.py": {
+      "total_lines": 25,
+      "ai_generated": 24,
+      "human_reviewed": 0,
+      "human_original": 1,
+      "ai_assisted": 0,
+      "ai_pct": 96.0,
+      "human_pct": 4.0
+    },
+    "tools/gen_real_dut_coverage.py": {
+      "total_lines": 119,
+      "ai_generated": 74,
+      "human_reviewed": 28,
+      "human_original": 17,
+      "ai_assisted": 0,
+      "ai_pct": 62.2,
+      "human_pct": 37.8
+    }
+  }
+}
