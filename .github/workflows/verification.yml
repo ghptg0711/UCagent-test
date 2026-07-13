@@ -29,7 +29,7 @@ jobs:
           ruff format --check src tests scripts tools
       - name: Run unit tests
         run: |
-          python -m pytest tests/ -v --ignore=tests/test_real_dut_smoke.py --cov=cache_vip --cov-report=term-missing
+          python -m pytest tests/ -v --ignore=tests/test_real_dut_smoke.py --cov=cache_vip --cov-config=.coveragerc --cov-report=term-missing
       - name: Run core regression
         run: |
           PYTHONPATH=src python -m cache_vip.regression --seeds 1,2,3 --count 500 --report-dir reports/regression-results
@@ -66,7 +66,7 @@ jobs:
           python -m pytest tests/test_regression_oracle.py -v
       - name: Run full portable test suite
         run: |
-          python -m pytest tests/ --ignore=tests/test_real_dut_smoke.py -v --cov=cache_vip --cov-report=term-missing
+          python -m pytest tests/ --ignore=tests/test_real_dut_smoke.py -v --cov=cache_vip --cov-config=.coveragerc --cov-report=term-missing
       - name: Upload portable coverage artifact
         if: always()
         uses: actions/upload-artifact@v5

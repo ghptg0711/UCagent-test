@@ -72,7 +72,8 @@ cache-vip-regress --seeds 1,2,3,4,5 --count 1000 --report-dir reports
 | Check | Result |
 | --- | --- |
 | Python syntax check | PASS |
-| Portable tests | PASS, 91 passed（以最新 CI 为准） |
+| Portable tests | PASS, 103 passed（以最新 CI 为准） |
+| Python runtime branch coverage | 88.2%（80% gate；offline evidence generators excluded） |
 | Directed cases | PASS, 16 cases (incl. BUG-010/011 RTL defect evidence) |
 | Edge cases | PASS, 27 cases |
 | DUT smoke (mock) | PASS, 7 cases |

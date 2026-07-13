@@ -1,0 +1,22 @@
+[run]
+source = src/cache_vip
+branch = True
+omit =
+    src/cache_vip/cross_validation.py
+    src/cache_vip/fallacy_detector.py
+    src/cache_vip/prompt_bug_matrix.py
+    src/cache_vip/rtl_trajectory.py
+    src/cache_vip/semantic_tracker.py
+
+[report]
+fail_under = 80
+precision = 1
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+
+# The omitted modules are offline evidence/report generators. They are not part
+# of the cache VIP execution path and have their own generated report artifacts.
+# DUT adapters, generators, scoreboards, memory agents, and regressions remain
+# inside the enforced coverage gate.

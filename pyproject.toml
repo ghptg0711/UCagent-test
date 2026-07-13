@@ -30,7 +30,7 @@ branch = true
 source = ["cache_vip"]
 
 [tool.coverage.report]
-fail_under = 69
+fail_under = 80
 precision = 1
 show_missing = true
 skip_covered = true
